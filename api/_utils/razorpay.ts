@@ -14,7 +14,8 @@ export function getRazorpayClient(): Razorpay | null {
   }
 
   if (!razorpayInstance) {
-    razorpayInstance = new Razorpay({
+    const RazorpayConstructor = (Razorpay as any).default || Razorpay
+    razorpayInstance = new RazorpayConstructor({
       key_id: keyId,
       key_secret: keySecret,
     })
