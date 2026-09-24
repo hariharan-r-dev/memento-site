@@ -70,22 +70,28 @@ function FeelCard({ label, title, body }: { label: string; title: string; body: 
 /* ── CharmShowcase (Authentic hanging Memento showcase with real cord and charm art) ─── */
 function CharmShowcase({ charmId, size = 120, ropeH = 130 }: { charmId: string; size?: number; ropeH?: number }) {
   return (
-    <div style={{ position: 'relative', height: ropeH + size + 20, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 20 }}>
+    <div style={{ position: 'relative', height: ropeH + size + 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: 20 }}>
       {/* Top anchor mount */}
       <div style={{
-        position: 'absolute', top: 12, width: 22, height: 8,
-        background: 'linear-gradient(180deg, #334155, #0F172A)',
-        border: '1px solid #475569', borderRadius: '3px 3px 0 0',
+        position: 'absolute', top: 11, width: 24, height: 9,
+        background: 'linear-gradient(180deg, #475569, #0F172A)',
+        border: '1px solid #64748B', borderRadius: '3px 3px 0 0',
       }} />
       {/* Braided red cord */}
       <div style={{
-        width: 2, height: ropeH,
+        width: 3.5, height: ropeH,
         background: '#991B1B',
-        borderLeft: '1px dashed #F87171',
+        borderLeft: '1.2px dashed #F87171',
         margin: '0 auto',
       }} />
+      {/* Physical connector gold bead */}
+      <div style={{
+        position: 'absolute', top: 20 + ropeH - 4, width: 10, height: 10, borderRadius: '50%',
+        background: 'radial-gradient(circle at 35% 30%, #FEF08A, #F59E0B 40%, #92400E 100%)',
+        border: '0.8px solid #78350F',
+      }} />
       {/* Real charm artwork */}
-      <div style={{ position: 'absolute', top: 20 + ropeH, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ position: 'absolute', top: 20 + ropeH + 6, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <CharmArt
           id={charmId}
           style={{ width: size, height: 'auto' }}
@@ -187,14 +193,14 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
           transition: 'all .18s ease',
           ...(primary
             ? {
-                background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                color: '#04121C',
-              }
+              background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+              color: '#04121C',
+            }
             : {
-                background: 'rgba(255,255,255,0.04)',
-                color: '#F8FAFC',
-                border: `1px solid ${BORDER}`,
-              }),
+              background: 'rgba(255,255,255,0.04)',
+              color: '#F8FAFC',
+              border: `1px solid ${BORDER}`,
+            }),
         }}
       >
         {cta}
@@ -384,12 +390,12 @@ export default function HomePage() {
           }}
         />
 
-        {/* Scoped Hero Hanging Charm — draggable with real physics (Compact rope, 1.5x visual size) */}
+        {/* Scoped Hero Hanging Charm — draggable with real physics (Long rope, 1.45x visual size) */}
         <InteractiveMemento
           charm={heroCharm}
           anchorRatioX={0.76}
-          ropeLength={100}
-          sizeScale={1.5}
+          ropeLength={190}
+          sizeScale={1.45}
           className="z-20"
         />
 
@@ -1198,7 +1204,6 @@ export default function HomePage() {
                 features={[
                   'Choose any 2 Mementos from the available collections',
                   'Desktop companion',
-                  'Natural hanging physics',
                   'Windows + macOS',
                   'Future standard updates',
                 ]}
@@ -1217,7 +1222,6 @@ export default function HomePage() {
                   'Customization',
                   'Create a personalized Memento',
                   'Desktop companion',
-                  'Natural hanging physics',
                   'Windows + macOS',
                   'Future standard updates',
                 ]}
@@ -1238,7 +1242,6 @@ export default function HomePage() {
                   'Customization',
                   'Create personalized Mementos',
                   'Desktop companion',
-                  'Natural hanging physics',
                   'Windows + macOS',
                   'Future standard updates',
                 ]}

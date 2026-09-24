@@ -3,45 +3,58 @@ import venkateswaraSrc from '../assets/charms/venkateswara.jpg'
 import kandhanSrc from '../assets/charms/kandhan.jpg'
 
 /**
- * Per-charm visual configuration.
+ * Per-charm visual configuration & explicit attachment coordinates.
  *
  * cropTop – fraction (0–1) of the image height to clip from the top.
- *           This hides the artwork rope/cord that appears in the original
- *           image, leaving only the attachment hardware (gold ball / silver
- *           ring) and the charm body visible.
- *
+ * attachmentPoint – normalized { x, y } coordinates (0..1) on the cropped image
+ *                   where the hardware connector attaches to the charm.
  * displayWidth / displayWidthSm – the CSS pixel width used when the charm
  *           hangs in the interactive physics system (desktop / mobile).
- *           Height is always auto (preserves natural aspect ratio).
  */
 export interface CharmVisual {
   src: string
   cropTop: number
   displayWidth: number
   displayWidthSm: number
+  attachmentPoint: {
+    x: number // 0.5 = horizontal center
+    y: number // 0 = top edge
+  }
 }
 
 export const CHARM_VISUALS: Record<string, CharmVisual> = {
   /** Red Ferrari F40 — wide horizontal charm.
-   *  cropTop hides the red dotted artwork rope; cut lands at the gold ball. */
+   *  cropTop hides the red dotted artwork rope; attachment point is the top gold mount. */
   ferrari: {
     src: ferrariSrc,
     cropTop: 0.44,
     displayWidth: 180,
     displayWidthSm: 130,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.0,
+    },
   },
-  /** Lord Venkateswara (Balaji / Tirupati) — tall vertical, complete full artwork */
+  /** Lord Venkateswara (Balaji / Tirupati) — tall vertical, attachment at the top crown mount. */
   venkateswara: {
     src: venkateswaraSrc,
     cropTop: 0,
-    displayWidth: 120,
-    displayWidthSm: 92,
+    displayWidth: 125,
+    displayWidthSm: 96,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.015,
+    },
   },
-  /** Kandhan Karunai — baby Murugan, medium portrait, complete full artwork */
+  /** Kandhan Karunai — baby Murugan, attachment at the top halo/ornament ring. */
   kandhan: {
     src: kandhanSrc,
     cropTop: 0,
-    displayWidth: 140,
-    displayWidthSm: 108,
+    displayWidth: 145,
+    displayWidthSm: 112,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
   },
 }

@@ -4,11 +4,12 @@ import { CHARM_VISUALS } from '../data/charm_visuals'
 import type { Charm } from '../data/charms'
 
 /* ── Physics constants ──────────────────────────────────────────── */
-const N    = 9      // rope points (= 8 segments)
-const ROPE_DEFAULT = 135 // total rope length in px
-const GRAV = 0.38   // gravity px / frame²
-const DAMP = 0.985  // per-frame velocity damping
-const ITER = 12     // constraint iterations per frame
+const N            = 12     // 12 points = 11 flexible rope segments
+const ROPE_DEFAULT = 185    // Default rope length in px (Long configuration)
+const GRAV         = 0.42   // gravity px / frame²
+const DAMP         = 0.982  // velocity damping
+const ITER         = 16     // constraint relaxation iterations per frame
+const CONNECTOR_H  = 12     // physical connector height in px (from rope end to charm mount)
 
 /* ── Point type ─────────────────────────────────────────────────── */
 type Pt = { x: number; y: number; px: number; py: number }
@@ -18,7 +19,7 @@ export interface InteractiveMementoProps {
   charm: Charm
   anchorRatioX?: number   // fraction of container width (e.g. 0.76 for hero, 0.65 for preview)
   ropeLength?: number     // total rope length in px
-  sizeScale?: number      // scaling multiplier for charm display size (e.g. 0.8 - 1.3)
+  sizeScale?: number      // scaling multiplier for charm display size (e.g. 0.8 - 1.5)
   className?: string
   style?: React.CSSProperties
 }
@@ -57,6 +58,9 @@ interface DragState {
   pointerId:   number
   grabOffsetX: number
   grabOffsetY: number
+  lastMoveTime: number
+  prevTargetX: number
+  prevTargetY: number
 }
 
 /* ── Component ──────────────────────────────────────────────────── */
@@ -65,15 +69,18 @@ export function InteractiveMemento({
   charm,
   anchorRatioX = 0.76,
   ropeLength = ROPE_DEFAULT,
-  sizeScale = 1,
+  sizeScale = 1.45,
   className = '',
   style = {},
 }: InteractiveMementoProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const pathRef      = useRef<SVGPathElement>(null)
-  const pathDashRef  = useRef<SVGPathElement>(null)
-  const anchorElRef  = useRef<SVGGElement>(null)
-  const charmEl      = useRef<HTMLDivElement>(null)
+  const containerRef    = useRef<HTMLDivElement>(null)
+  const pathShadowRef   = useRef<SVGPathElement>(null)
+  const pathCoreRef     = useRef<SVGPathElement>(null)
+  const pathBraidRef    = useRef<SVGPathElement>(null)
+  const pathHighlightRef = useRef<SVGPathElement>(null)
+  const anchorElRef     = useRef<SVGGElement>(null)
+  const connectorElRef  = useRef<SVGGElement>(null)
+  const charmEl         = useRef<HTMLDivElement>(null)
 
   /* Physics refs — mutated directly, never via React state */
   const ptsRef    = useRef<Pt[]>([])
@@ -83,6 +90,7 @@ export function InteractiveMemento({
   const dragRef   = useRef<DragState | null>(null)
   const segRef    = useRef(ropeLength / (N - 1))
   const scaleRef  = useRef(sizeScale)
+  const restingFramesRef = useRef(0)
 
   /* React state — only for charm artwork swap */
   const dispRef  = useRef<Charm>(charm)
@@ -92,62 +100,107 @@ export function InteractiveMemento({
   segRef.current   = ropeLength / (N - 1)
   scaleRef.current = sizeScale
 
+  function getCharmVisual(charmId: string) {
+    return CHARM_VISUALS[charmId] ?? CHARM_VISUALS['ferrari']
+  }
+
   function getCharmWidth(charmId: string, containerW: number, scale: number): number {
-    const v = CHARM_VISUALS[charmId]
-    const base = v ? (containerW < 640 ? v.displayWidthSm : v.displayWidth) : 80
+    const v = getCharmVisual(charmId)
+    const base = containerW < 640 ? v.displayWidthSm : v.displayWidth
     return Math.round(base * scale)
   }
 
   /* ── Verlet physics step ──────────────────────────────────────── */
   function step() {
     const p = ptsRef.current
+    if (p.length < N) return
+
     const d = dragRef.current
     const dragging = d?.active ?? false
     const seg = segRef.current
+
+    let totalKineticEnergy = 0
 
     /* 1. Verlet integration */
     for (let i = 1; i < N; i++) {
       if (dragging && i === N - 1) continue
       const pt = p[i]
-      const vx = (pt.x - pt.px) * DAMP
-      const vy = (pt.y - pt.py) * DAMP
-      pt.px = pt.x;  pt.py = pt.y
-      pt.x += vx;    pt.y += vy + GRAV
+      let vx = (pt.x - pt.px) * DAMP
+      let vy = (pt.y - pt.py) * DAMP
+
+      /* Zero-velocity threshold to ensure absolute stillness at rest */
+      if (!dragging && Math.abs(vx) < 0.003 && Math.abs(vy) < 0.003) {
+        vx = 0
+        vy = 0
+      }
+
+      pt.px = pt.x
+      pt.py = pt.y
+      pt.x += vx
+      pt.y += vy + GRAV
+
+      totalKineticEnergy += Math.abs(vx) + Math.abs(vy)
     }
 
-    /* 2. Pin dragged endpoint */
+    /* 2. Track dragged endpoint */
     if (dragging && d) {
       const L = p[N - 1]
-      L.px = L.x;  L.py = L.y
-      L.x  = d.targetX;  L.y = d.targetY
+      L.px = d.prevTargetX
+      L.py = d.prevTargetY
+      L.x  = d.targetX
+      L.y  = d.targetY
+      restingFramesRef.current = 0
+    } else {
+      if (totalKineticEnergy < 0.008) {
+        restingFramesRef.current++
+        if (restingFramesRef.current > 45) {
+          /* Equilibrium lock when completely settled */
+          const ax = anchorRef.current.x
+          const ay = anchorRef.current.y
+          for (let i = 0; i < N; i++) {
+            p[i].x = ax
+            p[i].y = ay + i * seg
+            p[i].px = ax
+            p[i].py = ay + i * seg
+          }
+        }
+      } else {
+        restingFramesRef.current = 0
+      }
     }
 
-    /* 3. Constraint iterations */
+    /* 3. Constraint iterations (distance constraints between adjacent rope segments) */
     for (let it = 0; it < ITER; it++) {
       p[0].x = anchorRef.current.x
       p[0].y = anchorRef.current.y
 
       for (let i = 0; i < N - 1; i++) {
         const a = p[i], b = p[i + 1]
-        const dx = b.x - a.x, dy = b.y - a.y
-        const dist = Math.hypot(dx, dy) || 0.001
+        const dx = b.x - a.x
+        const dy = b.y - a.y
+        const dist = Math.hypot(dx, dy) || 0.0001
         const k = (dist - seg) / dist
 
         const aPinned = i === 0
         const bPinned = dragging && i === N - 2
 
         if (!aPinned && !bPinned) {
-          a.x += dx * k * 0.5;  a.y += dy * k * 0.5
-          b.x -= dx * k * 0.5;  b.y -= dy * k * 0.5
+          a.x += dx * k * 0.5
+          a.y += dy * k * 0.5
+          b.x -= dx * k * 0.5
+          b.y -= dy * k * 0.5
         } else if (aPinned) {
-          b.x -= dx * k;  b.y -= dy * k
+          b.x -= dx * k
+          b.y -= dy * k
         } else {
-          a.x += dx * k;  a.y += dy * k
+          a.x += dx * k
+          a.y += dy * k
         }
       }
 
       if (dragging && d) {
-        p[N - 1].x = d.targetX;  p[N - 1].y = d.targetY
+        p[N - 1].x = d.targetX
+        p[N - 1].y = d.targetY
       }
     }
 
@@ -155,29 +208,60 @@ export function InteractiveMemento({
     p[0].y = anchorRef.current.y
   }
 
-  /* ── Render rope + charm (DOM mutation) ───────────────────────── */
+  /* ── Render rope, connector, and charm (direct DOM transform for 60fps) ── */
   function render() {
     const p = ptsRef.current
     if (p.length < N) return
-    const L = p[N - 1], P = p[N - 2]
+
+    const L = p[N - 1]
+    const P = p[N - 2]
     const pathD = buildPath(p)
 
-    pathRef.current?.setAttribute('d', pathD)
-    pathDashRef.current?.setAttribute('d', pathD)
+    /* 1. Update SVG Rope Curves */
+    pathShadowRef.current?.setAttribute('d', pathD)
+    pathCoreRef.current?.setAttribute('d', pathD)
+    pathBraidRef.current?.setAttribute('d', pathD)
+    pathHighlightRef.current?.setAttribute('d', pathD)
 
+    /* 2. Update Top Anchor Position */
     const ax = anchorRef.current.x
     anchorElRef.current?.setAttribute('transform', `translate(${ax.toFixed(1)}, 0)`)
 
+    /* 3. Calculate Rope Endpoint Angle & Rotation */
+    const angRad = Math.atan2(L.x - P.x, L.y - P.y)
+    const angDeg = angRad * (180 / Math.PI)
+    const rot = Math.max(-48, Math.min(48, angDeg))
+
+    /* 4. Update Physical Connector (Ball / Collar / Loop) at Rope Endpoint (L.x, L.y) */
+    connectorElRef.current?.setAttribute(
+      'transform',
+      `translate(${L.x.toFixed(1)}, ${L.y.toFixed(1)}) rotate(${rot.toFixed(2)})`
+    )
+
+    /* 5. Update Charm Position & Alignment with Exact Attachment Point */
     const el = charmEl.current
     if (!el) return
 
-    const sz = szRef.current
-    const ang = Math.atan2(L.x - P.x, L.y - P.y) * (180 / Math.PI)
-    const rot = Math.max(-42, Math.min(42, ang))
+    const visual = getCharmVisual(dispRef.current.id)
+    const attachX = visual.attachmentPoint.x // e.g. 0.5
+    const attachY = visual.attachmentPoint.y // e.g. 0.0
 
-    el.style.left      = `${(L.x - sz / 2).toFixed(1)}px`
-    el.style.top       = `${L.y.toFixed(1)}px`
-    el.style.transform = `rotate(${rot.toFixed(2)}deg)`
+    const sz = szRef.current
+
+    /* Attachment Point World Position: exactly at connector bottom */
+    const rad = (rot * Math.PI) / 180
+    const cosR = Math.cos(rad)
+    const sinR = Math.sin(rad)
+
+    /* Offset from rope end to connector bottom */
+    const mountX = L.x - sinR * CONNECTOR_H
+    const mountY = L.y + cosR * CONNECTOR_H
+
+    /* Position the charm div so its attachment point coincides with mountX, mountY */
+    el.style.left = `${mountX.toFixed(1)}px`
+    el.style.top  = `${mountY.toFixed(1)}px`
+    el.style.transformOrigin = `${(attachX * 100).toFixed(1)}% ${(attachY * 100).toFixed(1)}%`
+    el.style.transform = `translate(-${(attachX * 100).toFixed(1)}%, -${(attachY * 100).toFixed(1)}%) rotate(${rot.toFixed(2)}deg)`
   }
 
   /* ── Update charm div dimensions ────────────────────────────── */
@@ -185,9 +269,8 @@ export function InteractiveMemento({
     const sz = getCharmWidth(charmId, containerW, scale)
     szRef.current = sz
     if (charmEl.current) {
-      charmEl.current.style.width           = `${sz}px`
-      charmEl.current.style.height          = 'auto'
-      charmEl.current.style.transformOrigin = '50% 0px'
+      charmEl.current.style.width  = `${sz}px`
+      charmEl.current.style.height = 'auto'
     }
   }
 
@@ -200,9 +283,10 @@ export function InteractiveMemento({
     applyCharmDims(charmId, w, sizeScale)
     ptsRef.current = makeRope(ax, 0, segRef.current)
 
-    /* Pre-settle: 30 physics frames → zero velocity */
-    for (let i = 0; i < 30; i++) step()
+    /* Pre-settle into pure vertical rest state */
+    for (let i = 0; i < 40; i++) step()
     for (const pt of ptsRef.current) { pt.px = pt.x; pt.py = pt.y }
+    restingFramesRef.current = 50
   }
 
   /* ── Main mount effect ────────────────────────────────────────── */
@@ -224,8 +308,9 @@ export function InteractiveMemento({
       anchorRef.current = { x: ax, y: 0 }
       applyCharmDims(dispRef.current.id, w, scaleRef.current)
       ptsRef.current = makeRope(ax, 0, segRef.current)
-      for (let i = 0; i < 30; i++) step()
+      for (let i = 0; i < 40; i++) step()
       for (const pt of ptsRef.current) { pt.px = pt.x; pt.py = pt.y }
+      restingFramesRef.current = 50
     }
 
     window.addEventListener('resize', onResize, { passive: true })
@@ -237,7 +322,7 @@ export function InteractiveMemento({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anchorRatioX, ropeLength, sizeScale])
 
-  /* ── Charm switching — fade out → swap artwork → fade in ────── */
+  /* ── Charm switching — fade out → swap artwork & attachment → fade in ── */
   useEffect(() => {
     if (charm.id === dispRef.current.id) return
     setAlpha(0)
@@ -262,17 +347,21 @@ export function InteractiveMemento({
     const localX = e.clientX - rect.left
     const localY = e.clientY - rect.top
     const L = p.length >= N ? p[N - 1] : { x: localX, y: localY }
-    
+
     dragRef.current = {
       active: true,
       startX: localX,
       startY: localY,
       targetX: L.x,
       targetY: L.y,
+      prevTargetX: L.x,
+      prevTargetY: L.y,
       pointerId: e.pointerId,
       grabOffsetX: localX - L.x,
       grabOffsetY: localY - L.y,
+      lastMoveTime: performance.now(),
     }
+    restingFramesRef.current = 0
     e.currentTarget.setPointerCapture(e.pointerId)
     e.currentTarget.style.cursor = 'grabbing'
   }
@@ -288,12 +377,25 @@ export function InteractiveMemento({
     const rawX = localX - d.grabOffsetX
     const rawY = localY - d.grabOffsetY
 
-    d.targetX = Math.max(sz / 2, Math.min(rect.width - sz / 2, rawX))
-    d.targetY = Math.max(0, Math.min(rect.height - sz / 2, rawY))
+    d.prevTargetX = d.targetX
+    d.prevTargetY = d.targetY
+    d.targetX = Math.max(sz / 3, Math.min(rect.width - sz / 3, rawX))
+    d.targetY = Math.max(20, Math.min(rect.height - sz / 3, rawY))
+    d.lastMoveTime = performance.now()
   }
 
   function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
     if (!dragRef.current) return
+    const d = dragRef.current
+    const p = ptsRef.current
+    if (p.length >= N) {
+      const L = p[N - 1]
+      /* Preserve velocity vector on release for natural pendulum swing */
+      const dt = Math.max(16, performance.now() - d.lastMoveTime)
+      const throwFactor = Math.min(1.2, 24 / dt)
+      L.px = L.x - (d.targetX - d.prevTargetX) * throwFactor
+      L.py = L.y - (d.targetY - d.prevTargetY) * throwFactor
+    }
     dragRef.current = null
     try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* ignore */ }
     e.currentTarget.style.cursor = 'grab'
@@ -304,12 +406,15 @@ export function InteractiveMemento({
     if (charmEl.current) charmEl.current.style.cursor = 'grab'
   }
 
-  /** Single subtle lateral impulse on hover. */
+  /** Subtle lateral nudge on initial hover */
   function onPointerEnter() {
     if (dragRef.current) return
     const p = ptsRef.current
     if (p.length < N) return
-    for (let i = N - 3; i < N; i++) p[i].px += 1.8
+    for (let i = N - 4; i < N; i++) {
+      p[i].px += 2.0
+    }
+    restingFramesRef.current = 0
   }
 
   /* ── Render ──────────────────────────────────────────────────── */
@@ -319,65 +424,145 @@ export function InteractiveMemento({
       className={`absolute inset-0 pointer-events-none z-20 ${className}`}
       style={{ overflow: 'hidden', ...style }}
     >
-      {/* SVG for Rope & Top Anchor */}
+      {/* SVG for Rope, Anchors, and Physical Connectors */}
       <svg
         className="absolute inset-0 w-full h-full"
         style={{ pointerEvents: 'none', overflow: 'visible' }}
         aria-hidden="true"
       >
         <defs>
-          {/* Top anchor metallic gradient */}
+          {/* Metallic Top Anchor Gradient */}
           <linearGradient id="memento-anchor-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#334155" />
-            <stop offset="50%" stopColor="#1E293B" />
+            <stop offset="0%" stopColor="#475569" />
+            <stop offset="40%" stopColor="#334155" />
             <stop offset="100%" stopColor="#0F172A" />
+          </linearGradient>
+
+          {/* Polished Gold Connector Bead Gradient */}
+          <radialGradient id="memento-gold-bead" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#FEF08A" />
+            <stop offset="35%" stopColor="#F59E0B" />
+            <stop offset="75%" stopColor="#D97706" />
+            <stop offset="100%" stopColor="#78350F" />
+          </radialGradient>
+
+          {/* Metallic Collar / Hardware Crimp Gradient */}
+          <linearGradient id="memento-crimp-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#78350F" />
+            <stop offset="45%" stopColor="#FDE68A" />
+            <stop offset="70%" stopColor="#D97706" />
+            <stop offset="100%" stopColor="#451A03" />
           </linearGradient>
         </defs>
 
-        {/* 1. TOP ANCHOR / MOUNTING BRACKET */}
+        {/* 1. FIXED TOP ANCHOR MOUNT */}
         <g ref={anchorElRef}>
+          {/* Base plate */}
           <path
-            d="M -12 0 L 12 0 L 9 8 L -9 8 Z"
+            d="M -14 0 L 14 0 L 11 9 L -11 9 Z"
             fill="url(#memento-anchor-grad)"
-            stroke="#475569"
-            strokeWidth="0.8"
+            stroke="#64748B"
+            strokeWidth="0.9"
           />
-          <line x1="-11" y1="0.5" x2="11" y2="0.5" stroke="#64748B" strokeWidth="0.8" />
-          <circle cx="-5.5" cy="3.5" r="1.1" fill="#64748B" />
-          <circle cx="5.5" cy="3.5" r="1.1" fill="#64748B" />
+          {/* Accent rule & screws */}
+          <line x1="-12" y1="0.8" x2="12" y2="0.8" stroke="#94A3B8" strokeWidth="0.8" />
+          <circle cx="-6.5" cy="4.2" r="1.2" fill="#94A3B8" />
+          <circle cx="6.5" cy="4.2" r="1.2" fill="#94A3B8" />
+          {/* Top hanging eyelet loop */}
           <path
-            d="M -3 8 C -3 12.5, 3 12.5, 3 8"
+            d="M -3.5 9 C -3.5 14, 3.5 14, 3.5 9"
             fill="none"
-            stroke="#94A3B8"
-            strokeWidth="1.2"
+            stroke="#CBD5E1"
+            strokeWidth="1.6"
             strokeLinecap="round"
           />
         </g>
 
-        {/* 2. BRAIDED RED CORD / ROPE */}
+        {/* 2. THICK BRAIDED PHYSICAL ROPE (Multi-pass rendering for realistic texture) */}
+        {/* Layer A: Dark core/ambient shadow */}
         <path
-          ref={pathRef}
+          ref={pathShadowRef}
           fill="none"
-          stroke="#991B1B"
-          strokeWidth="2"
+          stroke="#450A0A"
+          strokeWidth="4.2"
           strokeLinecap="round"
         />
+        {/* Layer B: Solid rich red rope body */}
         <path
-          ref={pathDashRef}
+          ref={pathCoreRef}
+          fill="none"
+          stroke="#991B1B"
+          strokeWidth="3.4"
+          strokeLinecap="round"
+        />
+        {/* Layer C: Braided woven stitch cord texture */}
+        <path
+          ref={pathBraidRef}
           fill="none"
           stroke="#F87171"
-          strokeWidth="1.4"
-          strokeDasharray="3 3"
+          strokeWidth="2.0"
+          strokeDasharray="4 4"
           strokeLinecap="round"
           strokeOpacity="0.85"
         />
+        {/* Layer D: Subtle highlight sheen */}
+        <path
+          ref={pathHighlightRef}
+          fill="none"
+          stroke="#FECDD3"
+          strokeWidth="1.0"
+          strokeDasharray="2 6"
+          strokeLinecap="round"
+          strokeOpacity="0.6"
+        />
+
+        {/* 3. PHYSICAL CONNECTOR (Upper crimp + Gold sphere + Lower eyelet loop) */}
+        <g ref={connectorElRef}>
+          {/* Upper crimp band attaching rope to bead */}
+          <rect
+            x="-2.5"
+            y="-3"
+            width="5"
+            height="4"
+            rx="1"
+            fill="url(#memento-crimp-grad)"
+            stroke="#92400E"
+            strokeWidth="0.6"
+          />
+          {/* Polished gold connector sphere / bead */}
+          <circle
+            cx="0"
+            cy="5.2"
+            r="4.8"
+            fill="url(#memento-gold-bead)"
+            stroke="#92400E"
+            strokeWidth="0.7"
+          />
+          {/* Specular bead light reflection */}
+          <circle
+            cx="-1.6"
+            cy="3.6"
+            r="1.4"
+            fill="#FFFFFF"
+            opacity="0.8"
+          />
+          {/* Lower attachment eyelet / ring linking into the charm */}
+          <path
+            d="M -2 9.2 C -2 13.2, 2 13.2, 2 9.2"
+            fill="none"
+            stroke="#D97706"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </g>
       </svg>
 
-      {/* 3. CHARM CONTAINER */}
+      {/* 4. INTERACTIVE CHARM CONTAINER */}
       <div
         ref={charmEl}
         className="absolute z-30"
         style={{
+          position: 'absolute',
           pointerEvents: 'auto',
           cursor: 'grab',
           touchAction: 'none',
@@ -385,7 +570,7 @@ export function InteractiveMemento({
           WebkitUserSelect: 'none',
           opacity: alpha,
           transition: 'opacity 180ms ease',
-          willChange: 'transform',
+          willChange: 'transform, left, top',
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -403,6 +588,3 @@ export function InteractiveMemento({
     </div>
   )
 }
-
-
-
