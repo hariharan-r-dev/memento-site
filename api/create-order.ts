@@ -4,12 +4,28 @@ import { createRazorpayOrder } from './_utils/razorpay'
 import { db } from './_utils/supabase'
 import { loadEnvFiles } from './_utils/env'
 
+function getSupabaseKeyRole(key?: string): string {
+  if (!key) return 'missing'
+  try {
+    const parts = key.split('.')
+    if (parts.length === 3) {
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'))
+      return payload.role || 'unknown_jwt'
+    }
+    return 'non_jwt_format'
+  } catch {
+    return 'invalid_format'
+  }
+}
+
 export default async function handler(req: any, res: any) {
   loadEnvFiles()
   if (req.method !== 'POST') {
     res.statusCode = 405
     return res.end(JSON.stringify({ error: 'Method Not Allowed' }))
   }
+
+  let currentStep = 'parsing_request'
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {}
@@ -35,6 +51,7 @@ export default async function handler(req: any, res: any) {
     const amount = planConfig.amount
     const currency = planConfig.currency || 'INR'
 
+    currentStep = 'creating_razorpay_order'
     const order = await createRazorpayOrder({
       amount,
       currency,
@@ -45,6 +62,7 @@ export default async function handler(req: any, res: any) {
       },
     })
 
+    currentStep = 'saving_supabase_pending_purchase'
     // Store pending purchase in Supabase
     await db.savePendingPurchase({
       email: email.trim().toLowerCase(),
@@ -54,6 +72,7 @@ export default async function handler(req: any, res: any) {
       razorpay_order_id: order.id,
     })
 
+    currentStep = 'finalizing_response'
     const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder'
 
     res.setHeader('Content-Type', 'application/json')
@@ -70,8 +89,26 @@ export default async function handler(req: any, res: any) {
       })
     )
   } catch (err: any) {
-    console.error('[API create-order error]', err)
+    const diagnostics = {
+      failedStep: currentStep,
+      errorMessage: err.message || err.error?.description || String(err),
+      errorCode: err.code || err.statusCode || err.error?.code || 'UNKNOWN',
+      errorDetails: err.details || null,
+      errorHint: err.hint || null,
+      hasRazorpayKeyId: Boolean(process.env.RAZORPAY_KEY_ID),
+      hasRazorpaySecret: Boolean(process.env.RAZORPAY_KEY_SECRET),
+      hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
+      supabaseKeyRole: getSupabaseKeyRole(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    }
+
+    console.error('[API create-order error]', diagnostics, err)
     res.statusCode = 500
-    return res.end(JSON.stringify({ error: 'Failed to create payment order. Please try again.' }))
+    res.setHeader('Content-Type', 'application/json')
+    return res.end(
+      JSON.stringify({
+        error: 'Failed to create payment order. Please try again.',
+        diagnostics,
+      })
+    )
   }
 }
