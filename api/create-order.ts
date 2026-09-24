@@ -54,7 +54,7 @@ export default async function handler(req: any, res: any) {
       razorpay_order_id: order.id,
     })
 
-    const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder'
+    const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder'
 
     res.setHeader('Content-Type', 'application/json')
     res.statusCode = 200

@@ -6,7 +6,7 @@ let razorpayInstance: Razorpay | null = null
 
 export function getRazorpayClient(): Razorpay | null {
   loadEnvFiles()
-  const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID
+  const keyId = process.env.RAZORPAY_KEY_ID
   const keySecret = process.env.RAZORPAY_KEY_SECRET
 
   if (!keyId || !keySecret) {
