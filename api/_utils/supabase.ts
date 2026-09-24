@@ -215,7 +215,7 @@ export const db = {
         .select('memento_id')
         .eq('license_id', licenseId)
       if (error) throw error
-      return (data || []).map(r => r.memento_id)
+      return (data || []).map((r: { memento_id: string }) => r.memento_id)
     }
 
     return Array.from(localDb.ownedMementos.get(licenseId) || [])
