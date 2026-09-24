@@ -18,8 +18,9 @@ export default defineConfig(({ mode }) => {
       minify: !emitSourcemaps,
     },
     plugins: [
-react(),
+      react(),
       tailwindcss(),
+      mementoApiDevPlugin(),
       figmaSiteConfiguration(siteConfiguration),
       figmaErrorOverlayReplay(),
       figmaReactRefreshBoundaryFallback(),
@@ -355,6 +356,32 @@ function figmaMakeKitPlugin(options: { storiesGlob: string | string[] }): Plugin
         } catch (err) {
           next(err as Error)
         }
+      })
+    },
+  }
+}
+
+/** Dev-server local API router for Razorpay, Supabase, and Licensing endpoints */
+function mementoApiDevPlugin(): Plugin {
+  return {
+    name: 'memento-api-dev-plugin',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (req.url && req.url.startsWith('/api/')) {
+          try {
+            const { handleApiRequest } = await import('./api/index')
+            const handled = await handleApiRequest(req, res)
+            if (handled) return
+          } catch (err) {
+            console.error('[Memento API Dev Server Error]', err)
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: 'Internal Dev API Error' }))
+            return
+          }
+        }
+        next()
       })
     },
   }

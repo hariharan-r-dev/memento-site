@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { InteractiveMemento } from '../components/InteractiveMemento'
 import { CharmArt } from '../components/CharmArt'
+import { CheckoutModal } from '../components/CheckoutModal'
+import type { PlanId } from '../lib/razorpay'
 import { collections } from '../data/collections'
 import type { Charm } from '../data/charms'
 
@@ -112,8 +114,9 @@ type PCProps = {
   cta: string
   primary?: boolean
   highlighted?: boolean
+  onSelect?: () => void
 }
-function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted }: PCProps) {
+function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted, onSelect }: PCProps) {
   return (
     <div
       style={{
@@ -181,6 +184,7 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
 
       {/* CTA */}
       <button
+        onClick={onSelect}
         style={{
           width: '100%',
           fontFamily: F,
@@ -267,6 +271,7 @@ export default function HomePage() {
   const [demoRopeLen, setDemoRopeLen] = useState<number>(135)
   const [demoCharmScale, setDemoCharmScale] = useState<number>(1)
   const [activeColl, setActiveColl] = useState(ferrariCollId)
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanId | null>(null)
 
   const collRef = useRef<HTMLElement>(null)
   const pricingRef = useRef<HTMLElement>(null)
@@ -1128,14 +1133,17 @@ export default function HomePage() {
                 Turn something meaningful into a Memento that lives on your desktop.
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <button style={{
-                  background: `linear-gradient(180deg,${SKY_B},${SKY_MID})`,
-                  color: '#04121C', border: 'none', borderRadius: 12, padding: '15px 26px',
-                  fontFamily: F, fontWeight: 700, fontSize: 15, cursor: 'pointer',
-                }}>
+                <button
+                  onClick={() => setCheckoutPlan('memento_custom')}
+                  style={{
+                    background: `linear-gradient(180deg,${SKY_B},${SKY_MID})`,
+                    color: '#04121C', border: 'none', borderRadius: 12, padding: '15px 26px',
+                    fontFamily: F, fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                  }}
+                >
                   Create a Memento
                 </button>
-                <span style={{ color: MUTED, fontSize: 13.5 }}>From $3.99</span>
+                <span style={{ color: MUTED, fontSize: 13.5 }}>₹389 one-time</span>
               </div>
             </Reveal>
 
@@ -1208,6 +1216,7 @@ export default function HomePage() {
                   'Future standard updates',
                 ]}
                 cta="Get Memento"
+                onSelect={() => setCheckoutPlan('memento')}
               />
             </Reveal>
             <Reveal delay={80}>
@@ -1225,9 +1234,10 @@ export default function HomePage() {
                   'Windows + macOS',
                   'Future standard updates',
                 ]}
-                cta="Customize Your Memento"
+                cta="Customize your Memento"
                 primary
                 highlighted
+                onSelect={() => setCheckoutPlan('memento_custom')}
               />
             </Reveal>
             <Reveal delay={160}>
@@ -1246,6 +1256,7 @@ export default function HomePage() {
                   'Future standard updates',
                 ]}
                 cta="Get Complete"
+                onSelect={() => setCheckoutPlan('memento_complete')}
               />
             </Reveal>
           </div>
@@ -1278,44 +1289,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          FINAL CTA — matches HTML .cta-final
-          ════════════════════════════════════════════════════════ */}
-      {/* <section style={{ background: BG2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
-        <div style={{
-          ...sec({ paddingTop: 100, paddingBottom: 100 }),
-          display: 'grid', gridTemplateColumns: '1fr', gap: 40, alignItems: 'center',
-        }} className="cta-final-grid">
-          <Reveal>
-            <h2 style={{ fontSize: 'clamp(32px,4.4vw,52px)', lineHeight: 1.04, letterSpacing: '-0.025em', fontWeight: 700, margin: '0 0 20px', fontFamily: F }}>
-              Your desktop<br />could use a little something.
-            </h2>
-            <p style={{ color: TEXT2, fontSize: 17, lineHeight: 1.6, maxWidth: 460, marginBottom: 34 }}>
-              Choose your first Memento and give it a place to hang.
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-              <button style={{
-                background: `linear-gradient(180deg,${SKY_B},${SKY_MID})`,
-                color: '#04121C', border: 'none', borderRadius: 12, padding: '15px 26px',
-                fontFamily: F, fontWeight: 700, fontSize: 15, cursor: 'pointer',
-              }}>Get Memento</button>
-              <button
-                onClick={() => scrollTo(collRef)}
-                style={{
-                  background: 'transparent', color: '#F8FAFC', border: `1px solid ${BORDER}`,
-                  borderRadius: 12, padding: '15px 26px', fontFamily: F, fontWeight: 600, fontSize: 15, cursor: 'pointer',
-                }}>
-                Explore Collection
-              </button>
-            </div>
-          </Reveal>
-
-          <Reveal delay={100}>
-            <CharmShowcase charmId="ferrari" size={170} ropeH={130} />
-          </Reveal>
-        </div>
-        <style>{`@media(min-width:900px){.cta-final-grid{grid-template-columns:1.1fr 0.9fr!important;}}`}</style>
-      </section> */}
+      {checkoutPlan && (
+        <CheckoutModal
+          isOpen={!!checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          initialPlan={checkoutPlan}
+        />
+      )}
     </>
   )
 }
