@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'Google Sans Flex';
+  src: url('/fonts/GoogleSansFlex.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-headline: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-sans:     'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* ── Dark design system ──────────── */
+  --color-bg:       #070B14;
+  --color-bg2:      #0D1422;
+  --color-surface:  #111A2B;
+  --color-blue:     #38BDF8;
+  --color-blue-s:   #0EA5E9;
+  --color-blue-b:   #7DD3FC;
+  --color-text:     #F8FAFC;
+  --color-secondary:#94A3B8;
+  --color-muted:    #64748B;
+
+  /* Legacy aliases — used by InteractiveMemento, CharmArt */
+  --color-parchment: #070B14;
+  --color-ivory:     #0D1422;
+  --color-bone:      rgba(148, 163, 184, 0.10);
+  --color-stone:     #94A3B8;
+  --color-ash:       #64748B;
+  --color-ink:       #F8FAFC;
+  --color-amber:     #38BDF8;
+}
+
+@keyframes charm-appear {
+  0%   { opacity: 0; transform: scale(0.88); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.charm-appear { animation: charm-appear 320ms ease-out forwards; }
+
+@keyframes fade-up {
+  0%   { opacity: 0; transform: translateY(28px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.7s ease forwards; }
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.12) transparent;
+}
+*::-webkit-scrollbar        { width: 4px; height: 4px; }
+*::-webkit-scrollbar-track  { background: transparent; }
+*::-webkit-scrollbar-thumb  {
+  background: rgba(148, 163, 184, 0.12);
+  border-radius: 4px;
+}

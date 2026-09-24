@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memento — Little things worth keeping.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070B14; --bg2:#0D1422; --surface:#111A2B;
+    --sky:#38BDF8; --sky-mid:#0EA5E9; --sky-bright:#7DD3FC;
+    --text:#F8FAFC; --text2:#94A3B8; --muted:#64748B;
+    --border:rgba(148,163,184,0.16);
+    --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--font); overflow-x:hidden;
+  }
+
+  nav{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px clamp(20px,5vw,64px);
+    background:rgba(7,11,20,0.72); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .wordmark{font-weight:800; font-size:19px; letter-spacing:-0.02em;}
+  .navlinks{display:flex; gap:36px; list-style:none; margin:0; padding:0;}
+  .navlinks a{color:var(--text2); text-decoration:none; font-size:14.5px; font-weight:500; transition:color .2s;}
+  .navlinks a:hover{color:var(--text);}
+  .navlinks{display:none;}
+  @media(min-width:860px){.navlinks{display:flex;}}
+  .dl-btn{
+    background:var(--text); color:#050810; border:none; border-radius:999px;
+    padding:10px 20px; font-family:var(--font); font-weight:700; font-size:14px;
+    cursor:pointer;
+  }
+
+  .hero{
+    position:relative; min-height:calc(100vh - 73px);
+    display:grid; grid-template-columns:1fr; align-items:center;
+    padding:60px clamp(20px,5vw,64px) 80px;
+    gap:40px;
+    max-width:1440px; margin:0 auto;
+  }
+  @media(min-width:960px){
+    .hero{grid-template-columns:1.05fr 1fr; min-height:calc(100vh - 73px); padding-top:0;}
+  }
+
+  .eyebrow-line{display:flex; align-items:center; gap:10px; color:var(--sky-bright); font-size:13px; font-weight:600; letter-spacing:0.04em; margin-bottom:22px;}
+  .eyebrow-line .rule{width:22px; height:1px; background:var(--sky-mid);}
+
+  h1{
+    font-size:clamp(40px,6vw,72px); line-height:0.98; letter-spacing:-0.03em;
+    font-weight:800; margin:0 0 22px;
+  }
+  h1 span{display:block;}
+  .sub{color:var(--text2); font-size:18px; line-height:1.55; max-width:440px; margin:0 0 34px; font-weight:400;}
+
+  .cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-bottom:26px;}
+  .btn-primary{
+    background:linear-gradient(180deg,var(--sky-bright),var(--sky-mid));
+    color:#04121C; border:none; border-radius:12px; padding:15px 26px;
+    font-family:var(--font); font-weight:700; font-size:15px; cursor:pointer;
+    box-shadow:0 0 0 1px rgba(56,189,248,0.25), 0 12px 30px -10px rgba(56,189,248,0.5);
+  }
+  .btn-secondary{
+    background:transparent; color:var(--text); border:1px solid var(--border); border-radius:12px;
+    padding:15px 26px; font-family:var(--font); font-weight:600; font-size:15px; cursor:pointer;
+  }
+  .fine-print{color:var(--muted); font-size:13.5px;}
+
+  .stage{
+    position:relative; height:460px;
+    display:flex; align-items:flex-start; justify-content:center;
+  }
+  @media(min-width:960px){ .stage{ height:620px; justify-content:flex-end; padding-right:6%; } }
+
+  .glow{
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:520px; height:520px; border-radius:50%;
+    background:radial-gradient(circle, rgba(56,189,248,0.16), rgba(56,189,248,0) 65%);
+    pointer-events:none;
+  }
+
+  .rope-anchor{position:relative; width:2px; padding-top:0;}
+  svg#rope{position:absolute; top:0; left:50%; transform:translateX(-50%); overflow:visible; pointer-events:none;}
+
+  .charm{
+    position:absolute; left:50%; cursor:grab; touch-action:none;
+    display:flex; flex-direction:column; align-items:center;
+    user-select:none;
+  }
+  .charm:active{cursor:grabbing;}
+  .charm-ring{width:14px; height:14px; border-radius:50%; border:2.5px solid var(--sky-bright); background:transparent; margin-bottom:-3px;}
+  .charm-body{
+    width:118px; height:118px; border-radius:50% 50% 46% 46%;
+    background:linear-gradient(160deg, var(--sky-bright), var(--sky) 55%, var(--sky-mid));
+    box-shadow: inset 0 -10px 18px rgba(3,20,32,0.35), inset 0 8px 14px rgba(255,255,255,0.25), 0 18px 40px -14px rgba(56,189,248,0.55);
+    position:relative;
+  }
+  .charm-body::after{
+    content:""; position:absolute; top:18px; left:22px; width:26px; height:14px; border-radius:50%;
+    background:rgba(255,255,255,0.35); filter:blur(2px);
+  }
+
+  .hint{
+    position:absolute; color:var(--text2); font-size:13px; font-weight:500;
+    white-space:nowrap; opacity:1; transition:opacity .5s ease; pointer-events:none;
+    display:flex; align-items:center; gap:6px;
+  }
+  .hint.hidden{opacity:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    .charm{transition:none !important;}
+  }
+
+  .section{max-width:1240px; margin:0 auto; padding:120px clamp(20px,5vw,64px);}
+  .eyebrow{color:var(--sky-bright); font-size:13px; font-weight:600; letter-spacing:0.04em; margin-bottom:18px; display:flex; align-items:center; gap:10px;}
+  .eyebrow .rule{width:22px; height:1px; background:var(--sky-mid);}
+  h2{font-size:clamp(32px,4.4vw,52px); line-height:1.04; letter-spacing:-0.025em; font-weight:800; margin:0 0 20px;}
+  h2 .muted{color:var(--text2); font-weight:700;}
+  .lede{color:var(--text2); font-size:17px; line-height:1.6; max-width:460px;}
+
+  /* intro */
+  .intro-grid{display:grid; grid-template-columns:1fr; gap:56px; align-items:center;}
+  @media(min-width:900px){.intro-grid{grid-template-columns:1fr 0.9fr;}}
+  .mini-charm{width:88px; height:88px; margin:0 auto; border-radius:50% 50% 46% 46%;
+    background:linear-gradient(160deg, var(--sky-bright), var(--sky) 55%, var(--sky-mid));
+    box-shadow: inset 0 -8px 14px rgba(3,20,32,0.35), 0 16px 34px -12px rgba(56,189,248,0.5); position:relative;}
+  .intro-stage{position:relative; height:280px; display:flex; align-items:flex-start; justify-content:center; padding-top:20px;}
+  .intro-stage .rope-line{width:1.5px; height:150px; background:rgba(148,163,184,0.4); margin:0 auto 0;}
+  .intro-stage .charm-wrap{position:absolute; top:150px; text-align:center;}
+
+  /* feel real cards */
+  .feel-head{display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px; margin-bottom:64px;}
+  .card-row{display:grid; grid-template-columns:1fr; gap:22px;}
+  @media(min-width:860px){.card-row{grid-template-columns:repeat(3,1fr);}}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:32px; display:flex; flex-direction:column; gap:16px;}
+  .card-icon{width:34px; height:34px; color:var(--sky-bright);}
+  .card-label{color:var(--muted); font-size:12px; font-weight:700; letter-spacing:0.06em;}
+  .card h3{font-size:21px; margin:0; letter-spacing:-0.01em;}
+  .card p{color:var(--text2); font-size:14.5px; line-height:1.6; margin:0;}
+
+  /* playground */
+  .playground-stage{position:relative; height:420px; background:radial-gradient(ellipse at 70% 0%, rgba(56,189,248,0.10), transparent 60%); border:1px solid var(--border); border-radius:22px; overflow:hidden; margin-top:50px;}
+  .pg-copy{position:absolute; left:36px; top:40%; color:var(--text2); font-size:19px; max-width:220px; line-height:1.5;}
+
+  /* collection */
+  .tabs{display:flex; gap:10px; flex-wrap:wrap; margin:34px 0 40px;}
+  .tab{background:transparent; border:1px solid var(--border); color:var(--text2); border-radius:999px; padding:10px 20px; font-family:var(--font); font-weight:600; font-size:13.5px; cursor:pointer; transition:.2s;}
+  .tab.active{background:var(--sky); border-color:var(--sky); color:#04121C;}
+  .charm-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  @media(min-width:700px){.charm-grid{grid-template-columns:repeat(4,1fr);}}
+  .cc{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:30px 16px; text-align:center; transition:.2s;}
+  .cc:hover{border-color:var(--sky-mid); transform:translateY(-3px);}
+  .cc-shape{width:60px; height:60px; margin:0 auto 18px; border-radius:50%;}
+  .cc-name{font-size:14px; font-weight:600;}
+  .cc-cat{color:var(--muted); font-size:11.5px; letter-spacing:0.05em; margin-top:2px;}
+
+  /* pricing */
+  .price-row{display:grid; grid-template-columns:1fr; gap:20px;}
+  @media(min-width:900px){.price-row{grid-template-columns:repeat(3,1fr);}}
+  .pcard{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:32px; display:flex; flex-direction:column;}
+  .pcard.hi{border-color:var(--sky); box-shadow:0 0 0 1px rgba(56,189,248,0.35), 0 20px 40px -20px rgba(56,189,248,0.5);}
+  .pcard .badge{color:var(--sky-bright); font-size:11.5px; font-weight:700; letter-spacing:0.05em; margin-bottom:10px;}
+  .pcard .pname{font-weight:700; font-size:18px; margin-bottom:6px;}
+  .pcard .pamt{font-size:36px; font-weight:800; letter-spacing:-0.02em; margin-bottom:2px;}
+  .pcard .punit{color:var(--muted); font-size:12.5px; margin-bottom:22px;}
+  .pcard ul{list-style:none; margin:0 0 26px; padding:0; display:flex; flex-direction:column; gap:10px; flex:1;}
+  .pcard li{color:var(--text2); font-size:14px; display:flex; gap:9px;}
+  .pcard li::before{content:"✓"; color:var(--sky-bright); font-weight:700;}
+  .pcard button{width:100%;}
+
+  /* final cta */
+  .cta-final{background:var(--bg2); border-top:1px solid var(--border); border-bottom:1px solid var(--border);}
+  .cta-final .section{display:grid; grid-template-columns:1fr; gap:40px; align-items:center; padding-top:100px; padding-bottom:100px;}
+  @media(min-width:900px){.cta-final .section{grid-template-columns:1.1fr 0.9fr;}}
+
+  footer{padding:56px clamp(20px,5vw,64px); border-top:1px solid var(--border); display:flex; flex-wrap:wrap; gap:40px; justify-content:space-between; max-width:1240px; margin:0 auto;}
+  footer .fmark{font-weight:800; font-size:18px; margin-bottom:8px;}
+  footer .ftag{color:var(--muted); font-size:13.5px;}
+  footer .flinks{display:flex; gap:28px; flex-wrap:wrap; list-style:none; padding:0; margin:0;}
+  footer .flinks a{color:var(--text2); text-decoration:none; font-size:14px;}
+  footer .fcopy{color:var(--muted); font-size:12.5px; width:100%; margin-top:30px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wordmark">memento</div>
+  <ul class="navlinks">
+    <li><a href="#">Collections</a></li>
+    <li><a href="#">How it works</a></li>
+    <li><a href="#">Customize</a></li>
+    <li><a href="#">Pricing</a></li>
+  </ul>
+  <button class="dl-btn">Download</button>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="eyebrow-line"><span class="rule"></span>A DESKTOP COMPANION</div>
+    <h1><span>Little things</span><span>worth keeping.</span></h1>
+    <p class="sub">Collect charming companions and let them live on your desktop.</p>
+    <div class="cta-row">
+      <button class="btn-primary">Explore Mementos</button>
+      <button class="btn-secondary">Get Memento</button>
+    </div>
+    <div class="fine-print">Windows + macOS · One-time purchase</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="glow"></div>
+    <svg id="rope" width="4" height="620"><line id="ropeline" x1="2" y1="0" x2="2" y2="200" stroke="rgba(148,163,184,0.45)" stroke-width="1.5"/></svg>
+    <div class="charm" id="charm" style="top:200px;">
+      <div class="charm-ring"></div>
+      <div class="charm-body"></div>
+    </div>
+    <div class="hint" id="hint" style="top:330px; left:calc(50% + 90px);">↙ Drag me</div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="section intro-grid">
+  <div>
+    <div class="eyebrow"><span class="rule"></span>NOT JUST PIXELS</div>
+    <h2>A little presence<br>on your desktop.</h2>
+    <p class="lede">Memento brings small, physical-feeling objects into your digital space. They hang. They move. They react. They stay with you.</p>
+  </div>
+  <div class="intro-stage">
+    <div class="rope-line"></div>
+    <div class="charm-wrap"><div class="mini-charm"></div></div>
+  </div>
+</section>
+
+<!-- FEELS REAL -->
+<section class="section">
+  <div class="feel-head">
+    <div>
+      <div class="eyebrow"><span class="rule"></span>NOT JUST PIXELS. A LITTLE PRESENCE.</div>
+      <h2>Designed to<br><span class="muted">feel real.</span></h2>
+    </div>
+    <p class="lede">That familiar weight. That gentle sway. The little details that make a digital object feel wonderfully physical.</p>
+  </div>
+  <div class="card-row">
+    <div class="card">
+      <div class="card-label">NATURAL PHYSICS</div>
+      <h3>It actually hangs.</h3>
+      <p>Real rope physics, momentum and movement make every Memento feel like something hanging from your screen.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">MADE FOR YOUR DESKTOP</div>
+      <h3>A little less ordinary.</h3>
+      <p>Your desktop is where you spend your time. Give it something worth keeping.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">ALWAYS SOMETHING TO COLLECT</div>
+      <h3>Build your collection.</h3>
+      <p>Start with one Memento. Discover another. Keep the ones that mean something to you.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PLAYGROUND -->
+<section class="section">
+  <div class="eyebrow"><span class="rule"></span>GO ON. GIVE IT A LITTLE NUDGE.</div>
+  <h2>See how it moves.</h2>
+  <p class="lede">Drag a Memento. Swing it around. Let it go.</p>
+  <div class="playground-stage" id="stage2">
+    <div class="pg-copy">Grab. Swing. Let go.</div>
+    <svg id="rope2" width="4" height="420" style="position:absolute; top:0; left:50%; overflow:visible; pointer-events:none;"><line id="ropeline2" x1="2" y1="0" x2="2" y2="170" stroke="rgba(148,163,184,0.45)" stroke-width="1.5"/></svg>
+    <div class="charm" id="charm2" style="top:170px; left:50%;">
+      <div class="charm-ring"></div>
+      <div class="charm-body"></div>
+    </div>
+  </div>
+</section>
+
+<!-- COLLECTION -->
+<section class="section" id="collections">
+  <div class="eyebrow"><span class="rule"></span>COLLECTION</div>
+  <h2>Something for<br>every kind of you.</h2>
+  <p class="lede">Some are lucky. Some are nostalgic. Some are just too good to leave behind.</p>
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-cat="devotional">Devotional</button>
+    <button class="tab" data-cat="cars">Cars</button>
+    <button class="tab" data-cat="dc">DC</button>
+    <button class="tab" data-cat="marvel">Marvel</button>
+  </div>
+  <div class="charm-grid" id="charmGrid"></div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="eyebrow"><span class="rule"></span>PRICING</div>
+  <h2>Choose your Memento.</h2>
+  <p class="lede">One purchase. Yours forever. No recurring subscription.</p>
+  <div class="price-row" style="margin-top:44px;">
+    <div class="pcard">
+      <div class="pname">Memento</div>
+      <div class="pamt">$3.99</div>
+      <div class="punit">one-time purchase</div>
+      <ul>
+        <li>Desktop companion</li>
+        <li>Current standard collections</li>
+        <li>Cars &amp; Devotional</li>
+        <li>Basic customization</li>
+        <li>Future standard updates</li>
+        <li>Windows + macOS</li>
+      </ul>
+      <button class="btn-secondary">Get Memento</button>
+    </div>
+    <div class="pcard hi">
+      <div class="badge">FOR COLLECTORS</div>
+      <div class="pname">Memento+</div>
+      <div class="pamt">$4.99</div>
+      <div class="punit">one-time purchase</div>
+      <ul>
+        <li>Everything in Memento</li>
+        <li>Premium Mementos</li>
+        <li>Exclusive collections</li>
+        <li>Advanced customization</li>
+        <li>Limited editions &amp; early access</li>
+      </ul>
+      <button class="btn-primary">Get Memento+</button>
+    </div>
+    <div class="pcard">
+      <div class="pname">Custom Memento</div>
+      <div class="pamt">From $3.99</div>
+      <div class="punit">create something personal</div>
+      <ul>
+        <li>Personalized Memento</li>
+        <li>Custom colors &amp; details</li>
+        <li>Car, bike, pet, symbol</li>
+        <li>Your own idea</li>
+      </ul>
+      <button class="btn-secondary">Create a Memento</button>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-final">
+  <div class="section">
+    <div>
+      <h2>Your desktop<br>could use a little something.</h2>
+      <p class="lede" style="margin-bottom:34px;">Choose your first Memento and give it a place to hang.</p>
+      <div class="cta-row">
+        <button class="btn-primary">Get Memento</button>
+        <button class="btn-secondary">Explore Collection</button>
+      </div>
+    </div>
+    <div class="intro-stage">
+      <div class="rope-line"></div>
+      <div class="charm-wrap"><div class="mini-charm"></div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>
+    <div class="fmark">memento</div>
+    <div class="ftag">Little things worth keeping.</div>
+  </div>
+  <ul class="flinks">
+    <li><a href="#collections">Collection</a></li>
+    <li><a href="#">How it works</a></li>
+    <li><a href="#">Customize</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#">Download</a></li>
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+  </ul>
+  <div class="fcopy">© 2026 Memento</div>
+</footer>
+
+<script>
+  const COLLECTIONS = {
+    devotional: [{n:"Ganesha", c:"#7DD3FC"},{n:"Nazar", c:"#38BDF8"},{n:"Vinayagar", c:"#0EA5E9"},{n:"Daruma", c:"#7DD3FC"}],
+    cars: [{n:"Red Sports Car", c:"#38BDF8"},{n:"Classic Coupe", c:"#0EA5E9"}],
+    dc: [{n:"Coming soon", c:"#64748B"}],
+    marvel: [{n:"Spider-Man", c:"#38BDF8"},{n:"Coming soon", c:"#64748B"}]
+  };
+  const grid = document.getElementById('charmGrid');
+  function renderGrid(cat){
+    grid.innerHTML = COLLECTIONS[cat].map(c => `
+      <div class="cc">
+        <div class="cc-shape" style="background:linear-gradient(160deg, ${c.c}, #0EA5E9);"></div>
+        <div class="cc-name">${c.n}</div>
+        <div class="cc-cat">${cat.toUpperCase()}</div>
+      </div>`).join('');
+  }
+  document.getElementById('tabs').addEventListener('click', e=>{
+    const btn = e.target.closest('.tab');
+    if(!btn) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid(btn.dataset.cat);
+  });
+  renderGrid('devotional');
+</script>
+
+<script>
+function initCharm(stageId, charmId, ropeId, ropeLen, hintId){
+  const stage = document.getElementById(stageId);
+  const charm = document.getElementById(charmId);
+  const rope = document.getElementById(ropeId);
+  const hint = hintId ? document.getElementById(hintId) : null;
+  let angle = 0, angleV = 0, dragging = false;
+  const bias = stageId === 'stage' ? 0.78 : 0.5;
+
+  function render(a){
+    const x = Math.sin(a) * ropeLen;
+    const y = Math.cos(a) * ropeLen;
+    charm.style.top = y + 'px';
+    charm.style.marginLeft = x + 'px';
+    rope.setAttribute('x2', 2 + x);
+    rope.setAttribute('y2', y);
+  }
+  function settle(){
+    if(dragging) return;
+    angleV += -0.09 * angle - 0.13 * angleV;
+    angleV *= 0.92;
+    angle += angleV;
+    render(angle);
+    if(Math.abs(angle) > 0.001 || Math.abs(angleV) > 0.001) requestAnimationFrame(settle);
+    else { angle = 0; angleV = 0; render(0); }
+  }
+  function pointerPos(e){
+    const r = stage.getBoundingClientRect();
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return {x: cx - r.width * bias, y: cy};
+  }
+  function onDown(e){ dragging = true; if(hint) hint.classList.add('hidden'); move(e); }
+  function move(e){
+    if(!dragging) return;
+    const p = pointerPos(e);
+    let a = Math.atan2(p.x, Math.max(p.y, 20));
+    a = Math.max(-1.1, Math.min(1.1, a));
+    angleV = a - angle;
+    angle = a;
+    render(angle);
+    e.preventDefault();
+  }
+  function onUp(){ if(!dragging) return; dragging = false; requestAnimationFrame(settle); }
+
+  charm.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', move, {passive:false});
+  window.addEventListener('mouseup', onUp);
+  charm.addEventListener('touchstart', onDown, {passive:false});
+  window.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('touchend', onUp);
+  render(0);
+}
+initCharm('stage','charm','ropeline',200,'hint');
+initCharm('stage2','charm2','ropeline2',170,null);
+</script>
+
+</body>
+</html>
