@@ -5,10 +5,12 @@ import webhookHandler from './webhooks/razorpay'
 import activateHandler from './license/activate'
 import verifyLicenseHandler from './license/verify'
 import mementosHandler from './license/mementos'
+import downloadHandler from './download'
 
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const parsedUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
   const pathname = parsedUrl.pathname.replace(/\/$/, '')
+  ;(req as any).query = Object.fromEntries(parsedUrl.searchParams.entries())
 
   let handler: ((req: any, res: any) => Promise<any>) | null = null
 
@@ -18,6 +20,14 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   else if (pathname === '/api/license/activate') handler = activateHandler
   else if (pathname === '/api/license/verify') handler = verifyLicenseHandler
   else if (pathname === '/api/license/mementos') handler = mementosHandler
+  else if (pathname === '/api/download' || pathname.startsWith('/api/download/')) {
+    if (pathname === '/api/download/windows') {
+      ;(req as any).query = { ...(req as any).query, platform: 'windows' }
+    } else if (pathname === '/api/download/macos') {
+      ;(req as any).query = { ...(req as any).query, platform: 'macos' }
+    }
+    handler = downloadHandler
+  }
 
   if (!handler) return false
 

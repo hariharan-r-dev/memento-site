@@ -2,8 +2,10 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import { getPlanConfig } from './_utils/plans'
 import { createRazorpayOrder } from './_utils/razorpay'
 import { db } from './_utils/supabase'
+import { loadEnvFiles } from './_utils/env'
 
 export default async function handler(req: any, res: any) {
+  loadEnvFiles()
   if (req.method !== 'POST') {
     res.statusCode = 405
     return res.end(JSON.stringify({ error: 'Method Not Allowed' }))

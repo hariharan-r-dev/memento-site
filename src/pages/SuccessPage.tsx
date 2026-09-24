@@ -26,6 +26,9 @@ export default function SuccessPage() {
   const [savingMementos, setSavingMementos] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [downloadingWin, setDownloadingWin] = useState(false)
+  const [downloadingMac, setDownloadingMac] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const allAvailableCharms = collections.filter(c => !c.comingSoon).flatMap(c => c.charms)
 
@@ -85,6 +88,51 @@ export default function SuccessPage() {
     navigator.clipboard.writeText(licenseData.licenseKey)
     setCopied(true)
     setTimeout(() => setCopied(false), 2200)
+  }
+
+  const handleDownload = async (platform: 'windows' | 'macos') => {
+    if (!licenseData?.licenseKey) return
+    if (platform === 'windows') setDownloadingWin(true)
+    else setDownloadingMac(true)
+    setDownloadError(null)
+
+    try {
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'memento_download_click', {
+          platform,
+          plan: licenseData.plan || 'memento',
+        })
+      }
+
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform,
+          licenseKey: licenseData.licenseKey,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.downloadUrl) {
+        setDownloadError(data.error || `Unable to start ${platform === 'windows' ? 'Windows' : 'macOS'} download.`)
+        return
+      }
+
+      const a = document.createElement('a')
+      a.href = data.downloadUrl
+      a.download = data.fileName || (platform === 'windows' ? 'Memento-Setup.exe' : 'Memento-macOS.dmg')
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch (err: any) {
+      setDownloadError('Network error while starting download. Please check your connection.')
+    } finally {
+      if (platform === 'windows') setDownloadingWin(false)
+      else setDownloadingMac(false)
+    }
   }
 
   const handleCharmToggle = async (charmId: string) => {
@@ -318,6 +366,22 @@ export default function SuccessPage() {
             </div>
           </div>
 
+          {downloadError && (
+            <div
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                borderRadius: 10,
+                padding: '12px 16px',
+                color: '#FCA5A5',
+                fontSize: 13.5,
+                marginBottom: 16,
+              }}
+            >
+              ⚠️ {downloadError}
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {/* Windows Download */}
             <div
@@ -337,45 +401,48 @@ export default function SuccessPage() {
                   Windows 10 / 11
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Official .exe standalone installer
+                  Official .exe standalone installer · v1.0.0
                 </div>
               </div>
 
-              {winUrl ? (
-                <a
-                  href={winUrl}
-                  download
-                  style={{
-                    background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                    color: '#04121C',
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    textDecoration: 'none',
-                    display: 'block',
-                  }}
-                >
-                  Download for Windows
-                </a>
-              ) : (
-                <button
-                  disabled
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${BORDER}`,
-                    color: TEXT2,
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    fontWeight: 600,
-                    fontSize: 13.5,
-                    cursor: 'not-allowed',
-                  }}
-                >
-                  Windows build coming soon
-                </button>
-              )}
+              <button
+                onClick={() => handleDownload('windows')}
+                disabled={downloadingWin || downloadingMac}
+                style={{
+                  background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                  color: '#04121C',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: 'none',
+                  cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
+                  opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                {downloadingWin ? (
+                  <>
+                    <span
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid rgba(4,18,28,0.3)',
+                        borderTopColor: '#04121C',
+                        borderRadius: '50%',
+                        animation: 'spin 0.6s linear infinite',
+                      }}
+                    />
+                    <span>Preparing download…</span>
+                  </>
+                ) : (
+                  'Download for Windows'
+                )}
+              </button>
             </div>
 
             {/* macOS Download */}
@@ -396,45 +463,48 @@ export default function SuccessPage() {
                   macOS (Apple Silicon & Intel)
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Universal .dmg disk image
+                  Universal .dmg disk image · v1.0.0
                 </div>
               </div>
 
-              {macUrl ? (
-                <a
-                  href={macUrl}
-                  download
-                  style={{
-                    background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                    color: '#04121C',
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    textDecoration: 'none',
-                    display: 'block',
-                  }}
-                >
-                  Download for macOS
-                </a>
-              ) : (
-                <button
-                  disabled
-                  style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${BORDER}`,
-                    color: TEXT2,
-                    borderRadius: 10,
-                    padding: '12px 18px',
-                    fontWeight: 600,
-                    fontSize: 13.5,
-                    cursor: 'not-allowed',
-                  }}
-                >
-                  macOS build coming soon
-                </button>
-              )}
+              <button
+                onClick={() => handleDownload('macos')}
+                disabled={downloadingWin || downloadingMac}
+                style={{
+                  background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                  color: '#04121C',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  border: 'none',
+                  cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
+                  opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                {downloadingMac ? (
+                  <>
+                    <span
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: '2px solid rgba(4,18,28,0.3)',
+                        borderTopColor: '#04121C',
+                        borderRadius: '50%',
+                        animation: 'spin 0.6s linear infinite',
+                      }}
+                    />
+                    <span>Preparing download…</span>
+                  </>
+                ) : (
+                  'Download for macOS'
+                )}
+              </button>
             </div>
           </div>
         </div>

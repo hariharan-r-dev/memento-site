@@ -89,6 +89,24 @@ export const db = {
     return localDb.purchases.get(orderId) || null
   },
 
+  async getPurchaseById(purchaseId: string) {
+    const supabase = getSupabaseServerClient()
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('id', purchaseId)
+        .single()
+      if (error && error.code !== 'PGRST116') throw error
+      return data || null
+    }
+
+    for (const p of localDb.purchases.values()) {
+      if (p.id === purchaseId) return p
+    }
+    return null
+  },
+
   async markPurchasePaid(params: {
     orderId: string
     paymentId: string

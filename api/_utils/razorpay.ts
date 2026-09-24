@@ -1,9 +1,11 @@
 import crypto from 'crypto'
 import Razorpay from 'razorpay'
+import { loadEnvFiles } from './env'
 
 let razorpayInstance: Razorpay | null = null
 
 export function getRazorpayClient(): Razorpay | null {
+  loadEnvFiles()
   const keyId = process.env.RAZORPAY_KEY_ID || process.env.VITE_RAZORPAY_KEY_ID
   const keySecret = process.env.RAZORPAY_KEY_SECRET
 
@@ -57,6 +59,7 @@ export function verifyPaymentSignature(params: {
   paymentId: string
   signature: string
 }): boolean {
+  loadEnvFiles()
   const keySecret = process.env.RAZORPAY_KEY_SECRET
 
   // In test mode without secret key configured
@@ -70,6 +73,10 @@ export function verifyPaymentSignature(params: {
     .update(`${params.orderId}|${params.paymentId}`)
     .digest('hex')
 
+  if (!params.signature || generatedSignature.length !== params.signature.length) {
+    return false
+  }
+
   return crypto.timingSafeEqual(
     Buffer.from(generatedSignature, 'utf-8'),
     Buffer.from(params.signature, 'utf-8')
@@ -77,6 +84,7 @@ export function verifyPaymentSignature(params: {
 }
 
 export function verifyWebhookSignature(body: string, signature: string): boolean {
+  loadEnvFiles()
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
 
   if (!webhookSecret) {
@@ -88,6 +96,10 @@ export function verifyWebhookSignature(body: string, signature: string): boolean
     .createHmac('sha256', webhookSecret)
     .update(body)
     .digest('hex')
+
+  if (!signature || expectedSignature.length !== signature.length) {
+    return false
+  }
 
   return crypto.timingSafeEqual(
     Buffer.from(expectedSignature, 'utf-8'),

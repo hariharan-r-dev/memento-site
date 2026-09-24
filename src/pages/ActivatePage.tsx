@@ -21,6 +21,9 @@ export default function ActivatePage() {
   const [licenseData, setLicenseData] = useState<any>(null)
   const [selectedMementos, setSelectedMementos] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
+  const [downloadingWin, setDownloadingWin] = useState(false)
+  const [downloadingMac, setDownloadingMac] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const allAvailableCharms = collections.filter(c => !c.comingSoon).flatMap(c => c.charms)
 
@@ -59,6 +62,51 @@ export default function ActivatePage() {
     navigator.clipboard.writeText(licenseData.licenseKey)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = async (platform: 'windows' | 'macos') => {
+    if (!licenseData?.licenseKey) return
+    if (platform === 'windows') setDownloadingWin(true)
+    else setDownloadingMac(true)
+    setDownloadError(null)
+
+    try {
+      if (typeof window !== 'undefined' && (window as any).gtag) {
+        (window as any).gtag('event', 'memento_download_click', {
+          platform,
+          plan: licenseData.plan || 'memento',
+        })
+      }
+
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform,
+          licenseKey: licenseData.licenseKey,
+        }),
+      })
+
+      const data = await res.json()
+      if (!res.ok || !data.downloadUrl) {
+        setDownloadError(data.error || `Unable to start ${platform === 'windows' ? 'Windows' : 'macOS'} download.`)
+        return
+      }
+
+      const a = document.createElement('a')
+      a.href = data.downloadUrl
+      a.download = data.fileName || (platform === 'windows' ? 'Memento-Setup.exe' : 'Memento-macOS.dmg')
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch {
+      setDownloadError('Network error while starting download. Please check your connection.')
+    } finally {
+      if (platform === 'windows') setDownloadingWin(false)
+      else setDownloadingMac(false)
+    }
   }
 
   const handleCharmToggle = async (charmId: string) => {
@@ -179,42 +227,50 @@ export default function ActivatePage() {
               </div>
 
               {/* Downloads */}
-              <div style={{ marginTop: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-                <a
-                  href={licenseData.downloads?.windows || '#'}
-                  style={{
-                    background: licenseData.downloads?.windows ? `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})` : 'rgba(255,255,255,0.04)',
-                    color: licenseData.downloads?.windows ? '#04121C' : MUTED,
-                    border: `1px solid ${BORDER}`,
-                    borderRadius: 10,
-                    padding: '12px 16px',
-                    textAlign: 'center',
-                    fontWeight: 700,
-                    fontSize: 13.5,
-                    textDecoration: 'none',
-                    pointerEvents: licenseData.downloads?.windows ? 'auto' : 'none',
-                  }}
-                >
-                  {licenseData.downloads?.windows ? 'Download Windows (.exe)' : 'Windows build coming soon'}
-                </a>
+              {downloadError && (
+                <div style={{ marginTop: 16, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 10, padding: '10px 14px', color: '#FCA5A5', fontSize: 13 }}>
+                  ⚠️ {downloadError}
+                </div>
+              )}
 
-                <a
-                  href={licenseData.downloads?.macOS || '#'}
+              <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                <button
+                  onClick={() => handleDownload('windows')}
+                  disabled={downloadingWin || downloadingMac}
                   style={{
-                    background: licenseData.downloads?.macOS ? `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})` : 'rgba(255,255,255,0.04)',
-                    color: licenseData.downloads?.macOS ? '#04121C' : MUTED,
-                    border: `1px solid ${BORDER}`,
+                    background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                    color: '#04121C',
+                    border: 'none',
                     borderRadius: 10,
                     padding: '12px 16px',
                     textAlign: 'center',
                     fontWeight: 700,
                     fontSize: 13.5,
-                    textDecoration: 'none',
-                    pointerEvents: licenseData.downloads?.macOS ? 'auto' : 'none',
+                    cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
+                    opacity: downloadingWin || downloadingMac ? 0.8 : 1,
                   }}
                 >
-                  {licenseData.downloads?.macOS ? 'Download macOS (.dmg)' : 'macOS build coming soon'}
-                </a>
+                  {downloadingWin ? 'Preparing download…' : 'Download Windows (.exe)'}
+                </button>
+
+                <button
+                  onClick={() => handleDownload('macos')}
+                  disabled={downloadingWin || downloadingMac}
+                  style={{
+                    background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                    color: '#04121C',
+                    border: 'none',
+                    borderRadius: 10,
+                    padding: '12px 16px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
+                    opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                  }}
+                >
+                  {downloadingMac ? 'Preparing download…' : 'Download macOS (.dmg)'}
+                </button>
               </div>
             </div>
 
