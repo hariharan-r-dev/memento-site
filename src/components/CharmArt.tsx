@@ -84,6 +84,7 @@ function processCharm(id: string): void {
   loadingSet.add(id)
 
   const img = new Image()
+  img.crossOrigin = 'anonymous'
   img.onload = () => {
     const cropPx = Math.round(img.naturalHeight * visual.cropTop)
     const w = img.naturalWidth

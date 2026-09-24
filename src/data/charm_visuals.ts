@@ -1,3 +1,7 @@
+import ferrariSrc from '../assets/charms/ferrari.png'
+import venkateswaraSrc from '../assets/charms/venkateswara.jpg'
+import kandhanSrc from '../assets/charms/kandhan.jpg'
+
 /**
  * Per-charm visual configuration.
  *
@@ -21,21 +25,21 @@ export const CHARM_VISUALS: Record<string, CharmVisual> = {
   /** Red Ferrari F40 — wide horizontal charm.
    *  cropTop hides the red dotted artwork rope; cut lands at the gold ball. */
   ferrari: {
-    src: '/assets/charms/ferrari.png',
+    src: ferrariSrc,
     cropTop: 0.44,
     displayWidth: 180,
     displayWidthSm: 130,
   },
   /** Lord Venkateswara (Balaji / Tirupati) — tall vertical, complete full artwork */
   venkateswara: {
-    src: '/assets/charms/venkateswara.jpg',
+    src: venkateswaraSrc,
     cropTop: 0,
     displayWidth: 120,
     displayWidthSm: 92,
   },
   /** Kandhan Karunai — baby Murugan, medium portrait, complete full artwork */
   kandhan: {
-    src: '/assets/charms/kandhan.jpg',
+    src: kandhanSrc,
     cropTop: 0,
     displayWidth: 140,
     displayWidthSm: 108,
