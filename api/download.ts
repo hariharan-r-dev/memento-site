@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'http'
-import { db } from './_utils/supabase'
-import { resolveDownloadUrl, RELEASES_CONFIG } from './_utils/releases'
-import { loadEnvFiles } from './_utils/env'
+import { db } from './_utils/supabase.js'
+import { resolveDownloadUrl, RELEASES_CONFIG } from './_utils/releases.js'
+import { loadEnvFiles } from './_utils/env.js'
 
 export default async function handler(req: any, res: any) {
   loadEnvFiles()

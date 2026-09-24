@@ -1,5 +1,5 @@
-import { getSupabaseServerClient } from './supabase'
-import { loadEnvFiles } from './env'
+import { getSupabaseServerClient } from './supabase.js'
+import { loadEnvFiles } from './env.js'
 
 export interface PlatformRelease {
   fileName: string

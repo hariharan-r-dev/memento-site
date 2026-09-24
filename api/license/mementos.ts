@@ -1,5 +1,5 @@
-import { getPlanConfig } from '../_utils/plans'
-import { db } from '../_utils/supabase'
+import { getPlanConfig } from '../_utils/plans.js'
+import { db } from '../_utils/supabase.js'
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {

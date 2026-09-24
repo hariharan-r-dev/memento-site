@@ -1,11 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'http'
-import createOrderHandler from './create-order'
-import verifyPaymentHandler from './verify-payment'
-import webhookHandler from './webhooks/razorpay'
-import activateHandler from './license/activate'
-import verifyLicenseHandler from './license/verify'
-import mementosHandler from './license/mementos'
-import downloadHandler from './download'
+import createOrderHandler from './create-order.js'
+import verifyPaymentHandler from './verify-payment.js'
+import webhookHandler from './webhooks/razorpay.js'
+import activateHandler from './license/activate.js'
+import verifyLicenseHandler from './license/verify.js'
+import mementosHandler from './license/mementos.js'
+import downloadHandler from './download.js'
 
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const parsedUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)

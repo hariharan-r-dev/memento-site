@@ -1,6 +1,6 @@
-import { verifyWebhookSignature } from '../_utils/razorpay'
-import { generateLicenseKey } from '../_utils/license'
-import { db } from '../_utils/supabase'
+import { verifyWebhookSignature } from '../_utils/razorpay.js'
+import { generateLicenseKey } from '../_utils/license.js'
+import { db } from '../_utils/supabase.js'
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {

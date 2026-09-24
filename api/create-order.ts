@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'http'
-import { getPlanConfig } from './_utils/plans'
-import { createRazorpayOrder } from './_utils/razorpay'
-import { db } from './_utils/supabase'
-import { loadEnvFiles } from './_utils/env'
+import { getPlanConfig } from './_utils/plans.js'
+import { createRazorpayOrder } from './_utils/razorpay.js'
+import { db } from './_utils/supabase.js'
+import { loadEnvFiles } from './_utils/env.js'
 
 function getSupabaseKeyRole(key?: string): string {
   if (!key) return 'missing'

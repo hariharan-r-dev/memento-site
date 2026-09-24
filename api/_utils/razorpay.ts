@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import Razorpay from 'razorpay'
-import { loadEnvFiles } from './env'
+import { loadEnvFiles } from './env.js'
 
 let razorpayInstance: Razorpay | null = null
 
