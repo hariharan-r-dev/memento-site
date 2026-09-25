@@ -151,6 +151,7 @@ export default function SuccessPage() {
     setSelectedMementos(updated)
     setSavingMementos(true)
     setSaveSuccess(false)
+    setDownloadError(null)
 
     try {
       const res = await fetch('/api/license/mementos', {
@@ -161,12 +162,31 @@ export default function SuccessPage() {
           mementoIds: updated,
         }),
       })
+
       if (res.ok) {
+        const resData = await res.json().catch(() => ({}))
+        const savedIds = Array.isArray(resData.ownedMementos) ? resData.ownedMementos : updated
+        setSelectedMementos(savedIds)
         setSaveSuccess(true)
-        setTimeout(() => setSaveSuccess(false), 3000)
+        setTimeout(() => setSaveSuccess(false), 3500)
+
+        // Synchronize sessionStorage only after backend confirms success
+        try {
+          const cached = sessionStorage.getItem('memento_last_purchase')
+          if (cached) {
+            const parsed = JSON.parse(cached)
+            parsed.ownedMementos = savedIds
+            sessionStorage.setItem('memento_last_purchase', JSON.stringify(parsed))
+          }
+        } catch {
+          /* ignore */
+        }
+      } else {
+        const errJson = await res.json().catch(() => ({}))
+        setDownloadError(errJson.error || 'Failed to save selected Mementos.')
       }
     } catch {
-      /* ignore */
+      setDownloadError('Network error while saving Mementos.')
     } finally {
       setSavingMementos(false)
     }
@@ -406,7 +426,7 @@ export default function SuccessPage() {
 
               <button
                 onClick={() => handleDownload('windows')}
-                disabled={downloadingWin || downloadingMac}
+                disabled={downloadingWin || downloadingMac || savingMementos}
                 style={{
                   background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
                   color: '#04121C',
@@ -416,8 +436,8 @@ export default function SuccessPage() {
                   fontWeight: 700,
                   fontSize: 14,
                   border: 'none',
-                  cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
-                  opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                  cursor: downloadingWin || downloadingMac || savingMementos ? 'wait' : 'pointer',
+                  opacity: downloadingWin || downloadingMac || savingMementos ? 0.75 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -438,6 +458,8 @@ export default function SuccessPage() {
                     />
                     <span>Preparing download…</span>
                   </>
+                ) : savingMementos ? (
+                  <span>Saving selection…</span>
                 ) : (
                   'Download for Windows'
                 )}
@@ -468,7 +490,7 @@ export default function SuccessPage() {
 
               <button
                 onClick={() => handleDownload('macos')}
-                disabled={downloadingWin || downloadingMac}
+                disabled={downloadingWin || downloadingMac || savingMementos}
                 style={{
                   background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
                   color: '#04121C',
@@ -478,8 +500,8 @@ export default function SuccessPage() {
                   fontWeight: 700,
                   fontSize: 14,
                   border: 'none',
-                  cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
-                  opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                  cursor: downloadingWin || downloadingMac || savingMementos ? 'wait' : 'pointer',
+                  opacity: downloadingWin || downloadingMac || savingMementos ? 0.75 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -500,6 +522,8 @@ export default function SuccessPage() {
                     />
                     <span>Preparing download…</span>
                   </>
+                ) : savingMementos ? (
+                  <span>Saving selection…</span>
                 ) : (
                   'Download for macOS'
                 )}
@@ -531,7 +555,29 @@ export default function SuccessPage() {
             </div>
 
             {!isCompletePlan && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                {saveSuccess && (
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      color: '#34D399',
+                      fontWeight: 600,
+                      background: 'rgba(52,211,153,0.12)',
+                      border: '1px solid rgba(52,211,153,0.3)',
+                      padding: '4px 10px',
+                      borderRadius: 8,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <span>✓</span>
+                    <span>{selectedMementos.length} Mementos paired with your license</span>
+                  </span>
+                )}
+                {savingMementos && (
+                  <span style={{ fontSize: 12, color: SKY_B, fontWeight: 600 }}>Saving selections…</span>
+                )}
                 <span
                   style={{
                     fontSize: 13,
@@ -545,9 +591,6 @@ export default function SuccessPage() {
                 >
                   {selectedMementos.length} of {maxMementos} selected
                 </span>
-                {saveSuccess && (
-                  <span style={{ fontSize: 12, color: '#34D399', fontWeight: 600 }}>✓ Saved</span>
-                )}
               </div>
             )}
           </div>

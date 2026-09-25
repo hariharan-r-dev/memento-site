@@ -52,6 +52,16 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   },
 }
 
+export const REGISTERED_MEMENTO_IDS: readonly string[] = ['ferrari', 'venkateswara', 'kandhan']
+
+export function getAllRegisteredMementoIds(): string[] {
+  return [...REGISTERED_MEMENTO_IDS]
+}
+
+export function isValidMementoId(id: string): boolean {
+  return REGISTERED_MEMENTO_IDS.includes(id)
+}
+
 export function getPlanConfig(planId: string): PlanConfig | null {
   const normalized = planId.toLowerCase().trim() as PlanId
   return PLANS[normalized] ?? null

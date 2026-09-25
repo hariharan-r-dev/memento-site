@@ -1,4 +1,4 @@
-import { getPlanConfig, getDownloadUrls } from '../_utils/plans.js'
+import { getPlanConfig, getDownloadUrls, getAllRegisteredMementoIds } from '../_utils/plans.js'
 import { db } from '../_utils/supabase.js'
 
 export default async function handler(req: any, res: any) {
@@ -24,7 +24,13 @@ export default async function handler(req: any, res: any) {
     }
 
     const planConfig = getPlanConfig(license.plan) || getPlanConfig('memento')!
-    const ownedMementos = await db.getOwnedMementos(license.id)
+    let ownedMementos: string[]
+
+    if (planConfig.entitlements.allCollections) {
+      ownedMementos = getAllRegisteredMementoIds()
+    } else {
+      ownedMementos = await db.getOwnedMementos(license.id)
+    }
     const downloads = getDownloadUrls()
 
     res.setHeader('Content-Type', 'application/json')
