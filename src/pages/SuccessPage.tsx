@@ -423,7 +423,7 @@ export default function SuccessPage() {
                   Windows 10 / 11
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Official .exe standalone installer · v1.0.0
+                  Official .exe standalone installer · v1.0.2
                 </div>
               </div>
 
@@ -487,7 +487,7 @@ export default function SuccessPage() {
                   macOS (Apple Silicon & Intel)
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Universal .dmg disk image · v1.0.0
+                  Universal .dmg disk image · v1.0.2
                 </div>
               </div>
 

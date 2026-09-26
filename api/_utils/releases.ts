@@ -15,18 +15,18 @@ export const RELEASES_CONFIG: {
   windows: PlatformRelease
   macos: PlatformRelease
 } = {
-  version: '1.0.0',
+  version: '1.0.2',
   bucket: 'memento-releases',
   windows: {
     fileName: 'Memento-Setup.exe',
-    version: '1.0.0',
+    version: '1.0.2',
     platform: 'windows',
     mimeType: 'application/vnd.microsoft.portable-executable',
     storagePath: 'windows/Memento-Setup.exe',
   },
   macos: {
     fileName: 'Memento-macOS.dmg',
-    version: '1.0.0',
+    version: '1.0.2',
     platform: 'macos',
     mimeType: 'application/x-apple-diskimage',
     storagePath: 'macos/Memento-macOS.dmg',
