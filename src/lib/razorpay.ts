@@ -1,6 +1,7 @@
 /**
  * Client-side Razorpay checkout loader and handler
  */
+import { trackPurchase } from './analytics'
 
 let scriptPromise: Promise<boolean> | null = null
 
@@ -118,6 +119,15 @@ export async function initiateCheckout({
           }
 
           const verifyData = await verifyRes.json()
+
+          // Fire purchase event ONLY after server-side payment verification succeeds
+          trackPurchase({
+            transactionId: response.razorpay_payment_id || verifyData.licenseKey || response.razorpay_order_id,
+            planId: verifyData.plan || plan,
+            planName: verifyData.planName,
+            value: verifyData.plan === 'memento_four' ? 649 : 349,
+          })
+
           onSuccess(verifyData)
         } catch (err) {
           console.error('Verification error:', err)

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { collections } from '../data/collections'
 import { CharmArt } from '../components/CharmArt'
 import type { Charm } from '../data/charms'
+import { trackDownloadClicked } from '../lib/analytics'
 
 const BG      = '#070B14'
 const SURFACE = '#111A2B'
@@ -73,13 +74,6 @@ export default function ActivatePage() {
     setDownloadError(null)
 
     try {
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'memento_download_click', {
-          platform,
-          plan: licenseData.plan || 'memento',
-        })
-      }
-
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,6 +87,14 @@ export default function ActivatePage() {
       if (!res.ok || !data.downloadUrl) {
         setDownloadError(data.error || `Unable to start ${platform === 'windows' ? 'Windows' : 'macOS'} download.`)
         return
+      }
+
+      // Track successful authorized download initiation
+      if (platform === 'windows') {
+        trackDownloadClicked({
+          platform: 'windows',
+          plan: licenseData.plan || 'memento',
+        })
       }
 
       const a = document.createElement('a')

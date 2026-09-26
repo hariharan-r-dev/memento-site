@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { initiateCheckout } from '../lib/razorpay'
+import { trackCheckoutStarted, trackPlanSelected } from '../lib/analytics'
 
 const BG_OVERLAY = 'rgba(3, 7, 18, 0.82)'
 const SURFACE    = '#111A2B'
@@ -83,10 +84,13 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: 
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    const normalized = (initialPlan === 'memento_complete' ? 'memento_four' : initialPlan) as 'memento_duo' | 'memento_four'
-    setSelectedPlan(normalized)
-    setErrorMessage(null)
-    setLoadingText(null)
+    if (isOpen) {
+      const normalized = (initialPlan === 'memento_complete' ? 'memento_four' : initialPlan) as 'memento_duo' | 'memento_four'
+      setSelectedPlan(normalized)
+      setErrorMessage(null)
+      setLoadingText(null)
+      trackCheckoutStarted(normalized)
+    }
   }, [initialPlan, isOpen])
 
   if (!isOpen) return null
@@ -219,6 +223,7 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: 
                   onClick={() => {
                     setSelectedPlan(pKey)
                     setErrorMessage(null)
+                    trackPlanSelected(pKey)
                   }}
                   disabled={!!loadingText}
                   style={{

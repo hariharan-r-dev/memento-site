@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
+import { trackPageView } from '../lib/analytics'
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif"
 const BORDER = 'rgba(148,163,184,0.16)'
@@ -19,7 +20,8 @@ export default function Root() {
     window.scrollTo(0, 0)
     setNavVisible(true)
     lastScrollYRef.current = 0
-  }, [location.pathname])
+    trackPageView(location.pathname + location.search)
+  }, [location.pathname, location.search])
 
   useEffect(() => {
     const handleScroll = () => {

@@ -3,6 +3,7 @@ import { InteractiveMemento } from '../components/InteractiveMemento'
 import { CharmArt } from '../components/CharmArt'
 import { CheckoutModal } from '../components/CheckoutModal'
 import type { PlanId } from '../lib/razorpay'
+import { trackPlanSelected } from '../lib/analytics'
 import { collections } from '../data/collections'
 import type { Charm } from '../data/charms'
 
@@ -1237,7 +1238,10 @@ export default function HomePage() {
                   'Future standard updates',
                 ]}
                 cta="Get Memento Duo"
-                onSelect={() => setCheckoutPlan('memento_duo')}
+                onSelect={() => {
+                  trackPlanSelected('memento_duo')
+                  setCheckoutPlan('memento_duo')
+                }}
               />
             </Reveal>
             <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -1256,7 +1260,10 @@ export default function HomePage() {
                 cta="Get Memento Four"
                 primary
                 highlighted
-                onSelect={() => setCheckoutPlan('memento_four')}
+                onSelect={() => {
+                  trackPlanSelected('memento_four')
+                  setCheckoutPlan('memento_four')
+                }}
               />
             </Reveal>
             <Reveal delay={160} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
