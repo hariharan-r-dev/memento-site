@@ -2,6 +2,15 @@ import { getPlanConfig, getDownloadUrls, getAllRegisteredMementoIds } from '../_
 import { db } from '../_utils/supabase.js'
 
 export default async function handler(req: any, res: any) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 200
+    return res.end()
+  }
+
   if (req.method !== 'GET') {
     res.statusCode = 405
     return res.end(JSON.stringify({ error: 'Method Not Allowed' }))
