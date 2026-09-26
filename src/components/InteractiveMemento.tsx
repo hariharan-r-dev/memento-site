@@ -9,7 +9,7 @@ const ROPE_DEFAULT = 185    // Default rope length in px (Long configuration)
 const GRAV         = 0.42   // gravity px / frame²
 const DAMP         = 0.982  // velocity damping
 const ITER         = 16     // constraint relaxation iterations per frame
-const CONNECTOR_H  = 12     // physical connector height in px (from rope end to charm mount)
+const CONNECTOR_H  = -1.5   // -1.5px offset to sit 1.5px higher along the rope
 
 /* ── Point type ─────────────────────────────────────────────────── */
 type Pt = { x: number; y: number; px: number; py: number }
@@ -516,45 +516,8 @@ export function InteractiveMemento({
           strokeOpacity="0.6"
         />
 
-        {/* 3. PHYSICAL CONNECTOR (Upper crimp + Gold sphere + Lower eyelet loop) */}
-        <g ref={connectorElRef}>
-          {/* Upper crimp band attaching rope to bead */}
-          <rect
-            x="-2.5"
-            y="-3"
-            width="5"
-            height="4"
-            rx="1"
-            fill="url(#memento-crimp-grad)"
-            stroke="#92400E"
-            strokeWidth="0.6"
-          />
-          {/* Polished gold connector sphere / bead */}
-          <circle
-            cx="0"
-            cy="5.2"
-            r="4.8"
-            fill="url(#memento-gold-bead)"
-            stroke="#92400E"
-            strokeWidth="0.7"
-          />
-          {/* Specular bead light reflection */}
-          <circle
-            cx="-1.6"
-            cy="3.6"
-            r="1.4"
-            fill="#FFFFFF"
-            opacity="0.8"
-          />
-          {/* Lower attachment eyelet / ring linking into the charm */}
-          <path
-            d="M -2 9.2 C -2 13.2, 2 13.2, 2 9.2"
-            fill="none"
-            stroke="#D97706"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-          />
-        </g>
+        {/* 3. DIRECT CONNECTION (No extra gold sphere between rope and charm mount) */}
+        <g ref={connectorElRef} />
       </svg>
 
       {/* 4. INTERACTIVE CHARM CONTAINER */}

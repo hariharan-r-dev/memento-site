@@ -90,7 +90,6 @@ export default function Root() {
         <ul className="hidden md:flex" style={{ gap: 36, listStyle: 'none', margin: 0, padding: 0 }}>
           {[
             { label: 'Collections', href: isHome ? '#collections' : '/#collections' },
-            { label: 'How it works', href: isHome ? '#how-it-works' : '/#how-it-works' },
             { label: 'Customize', href: isHome ? '#customize' : '/#customize' },
             { label: 'Pricing', href: isHome ? '#pricing' : '/#pricing' },
             { label: 'FAQ', href: '/faq', isRoute: true },
@@ -151,7 +150,6 @@ export default function Root() {
           >
             {[
               { label: 'Collections', href: isHome ? '#collections' : '/#collections' },
-              { label: 'How it works', href: isHome ? '#how-it-works' : '/#how-it-works' },
               { label: 'Customize', href: isHome ? '#customize' : '/#customize' },
               { label: 'Pricing', href: isHome ? '#pricing' : '/#pricing' },
               { label: 'FAQ', href: '/faq', isRoute: true },

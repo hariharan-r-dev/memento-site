@@ -279,8 +279,10 @@ export default function HomePage() {
     ?? collections.find(c => !c.comingSoon && c.charms.length > 0)?.id
     ?? collections[0].id
 
-  /* Hero charm stays on Ferrari or default hero charm */
-  const [heroCharm] = useState<Charm>(ferrariCharm)
+  const pastryCharm = allCharms.find(c => c.id === 'pistachio-chocolate-donut' || c.id === 'chocolate-pistachio-pastry') ?? allCharms[0]
+
+  /* Hero charm set to Pastry Bun */
+  const [heroCharm] = useState<Charm>(pastryCharm)
   /* Desktop preview section has its own independent charm & physics state */
   const [demoCharm, setDemoCharm] = useState<Charm>(ferrariCharm)
   const [demoRopeLen, setDemoRopeLen] = useState<number>(135)
@@ -1056,9 +1058,9 @@ export default function HomePage() {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          COLLECTION — tabs + charm grid
+          COLLECTION — tabs + charm grid (Temporarily commented out)
           ════════════════════════════════════════════════════════ */}
-      <section id="collections" ref={collRef} style={{ borderTop: `1px solid ${BORDER}` }}>
+      {/* <section id="collections" ref={collRef} style={{ borderTop: `1px solid ${BORDER}` }}>
         <div style={sec()}>
           <Reveal>
             <Eyebrow>The collection</Eyebrow>
@@ -1070,7 +1072,6 @@ export default function HomePage() {
             </p>
           </Reveal>
 
-          {/* Tabs — pill style matching HTML */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '34px 0 40px' }}>
             {collections.map(coll => (
               <button
@@ -1090,7 +1091,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Charm grid — matching HTML .charm-grid (2 cols mobile, 4 cols wide) */}
           <div key={activeColl} style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(150px,1fr))',
@@ -1120,7 +1120,6 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Collection info */}
           {!currentColl.comingSoon && (
             <Reveal>
               <p style={{ marginTop: 32, color: MUTED, fontSize: 13.5, lineHeight: 1.6 }}>
@@ -1129,7 +1128,7 @@ export default function HomePage() {
             </Reveal>
           )}
         </div>
-      </section>
+      </section> */}
 
       {/* ════════════════════════════════════════════════════════
           CUSTOMIZE
