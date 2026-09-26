@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, Link } from 'react-router'
 import { collections } from '../data/collections'
 import { CharmArt } from '../components/CharmArt'
@@ -29,6 +29,7 @@ export default function SuccessPage() {
   const [downloadingWin, setDownloadingWin] = useState(false)
   const [downloadingMac, setDownloadingMac] = useState(false)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const inFlightRef = useRef(false)
 
   const allAvailableCharms = collections.filter(c => !c.comingSoon).flatMap(c => c.charms)
 
@@ -135,7 +136,7 @@ export default function SuccessPage() {
   }
 
   const handleCharmToggle = async (charmId: string) => {
-    if (!licenseData) return
+    if (!licenseData || inFlightRef.current || savingMementos) return
     const maxAllowed = licenseData.entitlements?.maxMementos
 
     let updated: string[] = []
@@ -148,6 +149,7 @@ export default function SuccessPage() {
       updated = [...selectedMementos, charmId]
     }
 
+    inFlightRef.current = true
     setSelectedMementos(updated)
     setSavingMementos(true)
     setSaveSuccess(false)
@@ -188,6 +190,7 @@ export default function SuccessPage() {
     } catch {
       setDownloadError('Network error while saving Mementos.')
     } finally {
+      inFlightRef.current = false
       setSavingMementos(false)
     }
   }
@@ -610,16 +613,16 @@ export default function SuccessPage() {
               return (
                 <button
                   key={ch.id}
-                  onClick={() => !isCompletePlan && handleCharmToggle(ch.id)}
-                  disabled={isCompletePlan || disabled}
+                  onClick={() => !isCompletePlan && !savingMementos && handleCharmToggle(ch.id)}
+                  disabled={isCompletePlan || disabled || savingMementos}
                   style={{
                     background: isSelected ? 'rgba(56,189,248,0.1)' : 'rgba(7, 11, 20, 0.6)',
                     border: `1px solid ${isSelected ? SKY_MID : BORDER}`,
                     borderRadius: 16,
                     padding: '24px 16px',
                     textAlign: 'center',
-                    cursor: isCompletePlan ? 'default' : disabled ? 'not-allowed' : 'pointer',
-                    opacity: disabled ? 0.45 : 1,
+                    cursor: isCompletePlan ? 'default' : (disabled || savingMementos) ? 'not-allowed' : 'pointer',
+                    opacity: (disabled || (savingMementos && !isSelected)) ? 0.45 : 1,
                     transition: '.18s',
                     display: 'flex',
                     flexDirection: 'column',

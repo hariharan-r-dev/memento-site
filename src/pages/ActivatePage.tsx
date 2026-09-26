@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router'
 import { collections } from '../data/collections'
 import { CharmArt } from '../components/CharmArt'
@@ -24,6 +24,8 @@ export default function ActivatePage() {
   const [downloadingWin, setDownloadingWin] = useState(false)
   const [downloadingMac, setDownloadingMac] = useState(false)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const [savingMementos, setSavingMementos] = useState(false)
+  const inFlightRef = useRef(false)
 
   const allAvailableCharms = collections.filter(c => !c.comingSoon).flatMap(c => c.charms)
 
@@ -110,7 +112,7 @@ export default function ActivatePage() {
   }
 
   const handleCharmToggle = async (charmId: string) => {
-    if (!licenseData) return
+    if (!licenseData || inFlightRef.current || savingMementos) return
     const maxAllowed = licenseData.entitlements?.maxMementos
 
     let updated: string[] = []
@@ -121,10 +123,12 @@ export default function ActivatePage() {
       updated = [...selectedMementos, charmId]
     }
 
+    inFlightRef.current = true
     setSelectedMementos(updated)
+    setSavingMementos(true)
 
     try {
-      await fetch('/api/license/mementos', {
+      const res = await fetch('/api/license/mementos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,7 +136,16 @@ export default function ActivatePage() {
           mementoIds: updated,
         }),
       })
-    } catch { /* ignore */ }
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}))
+        if (Array.isArray(data.ownedMementos)) {
+          setSelectedMementos(data.ownedMementos)
+        }
+      }
+    } catch { /* ignore */ } finally {
+      inFlightRef.current = false
+      setSavingMementos(false)
+    }
   }
 
   const isCompletePlan = licenseData?.entitlements?.allCollections === true
@@ -276,33 +289,41 @@ export default function ActivatePage() {
 
             {/* Choose Mementos */}
             <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 20, padding: '28px' }}>
-              <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC' }}>
-                  {isCompletePlan ? 'All Mementos Unlocked' : 'Paired Mementos'}
+              <div style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC' }}>
+                    {isCompletePlan ? 'All Mementos Unlocked' : 'Paired Mementos'}
+                  </div>
+                  <div style={{ fontSize: 13, color: TEXT2 }}>
+                    {isCompletePlan ? 'Your plan includes access to all current and future collections.' : `Selected: ${selectedMementos.length} of ${maxMementos}`}
+                  </div>
                 </div>
-                <div style={{ fontSize: 13, color: TEXT2 }}>
-                  {isCompletePlan ? 'Your plan includes access to all current and future collections.' : `Selected: ${selectedMementos.length} of ${maxMementos}`}
-                </div>
+                {savingMementos && (
+                  <span style={{ fontSize: 12, color: SKY_B, fontWeight: 600 }}>Saving...</span>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
                 {allAvailableCharms.map((ch: Charm) => {
                   const isSelected = isCompletePlan || selectedMementos.includes(ch.id)
+                  const disabled = !isCompletePlan && !isSelected && (maxMementos !== null && selectedMementos.length >= maxMementos)
                   return (
                     <button
                       key={ch.id}
-                      onClick={() => !isCompletePlan && handleCharmToggle(ch.id)}
-                      disabled={isCompletePlan}
+                      onClick={() => !isCompletePlan && !savingMementos && handleCharmToggle(ch.id)}
+                      disabled={isCompletePlan || disabled || savingMementos}
                       style={{
                         background: isSelected ? 'rgba(56,189,248,0.1)' : 'rgba(7, 11, 20, 0.6)',
                         border: `1px solid ${isSelected ? SKY_MID : BORDER}`,
                         borderRadius: 14,
                         padding: '18px 12px',
                         textAlign: 'center',
-                        cursor: isCompletePlan ? 'default' : 'pointer',
+                        cursor: isCompletePlan ? 'default' : (disabled || savingMementos) ? 'not-allowed' : 'pointer',
+                        opacity: (disabled || (savingMementos && !isSelected)) ? 0.45 : 1,
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
+                        transition: '.18s',
                       }}
                     >
                       <div style={{ width: 50, height: 50, marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

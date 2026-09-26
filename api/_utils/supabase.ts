@@ -224,13 +224,34 @@ export const db = {
   async saveOwnedMementos(licenseId: string, mementoIds: string[]): Promise<string[]> {
     const supabase = getSupabaseServerClient()
     if (supabase) {
-      // Clear and replace owned selections
-      await supabase.from('owned_mementos').delete().eq('license_id', licenseId)
-      if (mementoIds.length > 0) {
-        const rows = mementoIds.map(id => ({ license_id: licenseId, memento_id: id }))
-        const { error } = await supabase.from('owned_mementos').insert(rows)
-        if (error) throw error
+      if (mementoIds.length === 0) {
+        const { error: delErr } = await supabase
+          .from('owned_mementos')
+          .delete()
+          .eq('license_id', licenseId)
+        if (delErr) throw delErr
+        return []
       }
+
+      // 1. Delete existing selections for this license that are not in the new selection list
+      const { error: delErr } = await supabase
+        .from('owned_mementos')
+        .delete()
+        .eq('license_id', licenseId)
+        .not('memento_id', 'in', `(${mementoIds.join(',')})`)
+      if (delErr) throw delErr
+
+      // 2. Insert/upsert selected mementos idempotently using unique constraint (license_id, memento_id)
+      const rows = mementoIds.map(id => ({ license_id: licenseId, memento_id: id }))
+      const { error: upsertErr } = await supabase
+        .from('owned_mementos')
+        .upsert(rows, { onConflict: 'license_id,memento_id', ignoreDuplicates: true })
+
+      // If a concurrent transaction already inserted the same row (code 23505), treat as idempotent success
+      if (upsertErr && (upsertErr as any).code !== '23505') {
+        throw upsertErr
+      }
+
       return mementoIds
     }
 
