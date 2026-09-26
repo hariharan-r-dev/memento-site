@@ -114,9 +114,10 @@ type PCProps = {
   cta: string
   primary?: boolean
   highlighted?: boolean
+  disabled?: boolean
   onSelect?: () => void
 }
-function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted, onSelect }: PCProps) {
+function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted, disabled, onSelect }: PCProps) {
   return (
     <div
       style={{
@@ -184,27 +185,35 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
 
       {/* CTA */}
       <button
-        onClick={onSelect}
+        onClick={disabled ? undefined : onSelect}
+        disabled={disabled}
         style={{
           width: '100%',
           fontFamily: F,
           fontWeight: 700,
           fontSize: 15,
-          border: 'none',
           borderRadius: 12,
           padding: '15px 24px',
-          cursor: 'pointer',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.6 : 1,
           transition: 'all .18s ease',
-          ...(primary
+          ...(disabled
             ? {
-              background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-              color: '#04121C',
-            }
+                background: 'rgba(255,255,255,0.03)',
+                color: MUTED,
+                border: `1px solid ${BORDER}`,
+              }
+            : primary
+            ? {
+                background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                color: '#04121C',
+                border: 'none',
+              }
             : {
-              background: 'rgba(255,255,255,0.04)',
-              color: '#F8FAFC',
-              border: `1px solid ${BORDER}`,
-            }),
+                background: 'rgba(255,255,255,0.04)',
+                color: '#F8FAFC',
+                border: `1px solid ${BORDER}`,
+              }),
         }}
       >
         {cta}
@@ -1134,16 +1143,23 @@ export default function HomePage() {
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <button
-                  onClick={() => setCheckoutPlan('memento_complete')}
+                  disabled
                   style={{
-                    background: `linear-gradient(180deg,${SKY_B},${SKY_MID})`,
-                    color: '#04121C', border: 'none', borderRadius: 12, padding: '15px 26px',
-                    fontFamily: F, fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.04)',
+                    color: MUTED,
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: 12,
+                    padding: '15px 26px',
+                    fontFamily: F,
+                    fontWeight: 700,
+                    fontSize: 15,
+                    cursor: 'not-allowed',
+                    opacity: 0.7,
                   }}
                 >
                   Customisation — Coming Soon
                 </button>
-                <span style={{ color: MUTED, fontSize: 13.5 }}>Included in Complete plan</span>
+                <span style={{ color: MUTED, fontSize: 13.5 }}>Coming soon in Complete plan</span>
               </div>
             </Reveal>
 
@@ -1240,7 +1256,7 @@ export default function HomePage() {
             </Reveal>
             <Reveal delay={160}>
               <PricingCard
-                badge="Collector"
+                badge="Coming Soon"
                 name="Memento Complete"
                 subtitle="The complete collection."
                 amount="₹949"
@@ -1254,8 +1270,8 @@ export default function HomePage() {
                   'Future standard updates',
                   'Customisation — Coming Soon',
                 ]}
-                cta="Get Complete"
-                onSelect={() => setCheckoutPlan('memento_complete')}
+                cta="Coming Soon"
+                disabled
               />
             </Reveal>
           </div>

@@ -487,49 +487,30 @@ export default function SuccessPage() {
                   macOS (Apple Silicon & Intel)
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Universal .dmg disk image · v1.0.2
+                  Universal disk image · Launching soon
                 </div>
               </div>
 
               <button
-                onClick={() => handleDownload('macos')}
-                disabled={downloadingWin || downloadingMac || savingMementos}
+                disabled={true}
                 style={{
-                  background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                  color: '#04121C',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: 'rgba(255, 255, 255, 0.4)',
                   borderRadius: 10,
                   padding: '12px 18px',
                   textAlign: 'center',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   fontSize: 14,
-                  border: 'none',
-                  cursor: downloadingWin || downloadingMac || savingMementos ? 'wait' : 'pointer',
-                  opacity: downloadingWin || downloadingMac || savingMementos ? 0.75 : 1,
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  cursor: 'not-allowed',
+                  opacity: 0.6,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
                 }}
               >
-                {downloadingMac ? (
-                  <>
-                    <span
-                      style={{
-                        width: 14,
-                        height: 14,
-                        border: '2px solid rgba(4,18,28,0.3)',
-                        borderTopColor: '#04121C',
-                        borderRadius: '50%',
-                        animation: 'spin 0.6s linear infinite',
-                      }}
-                    />
-                    <span>Preparing download…</span>
-                  </>
-                ) : savingMementos ? (
-                  <span>Saving selection…</span>
-                ) : (
-                  'Download for macOS'
-                )}
+                Launching Soon
               </button>
             </div>
           </div>

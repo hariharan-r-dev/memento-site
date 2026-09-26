@@ -76,13 +76,15 @@ const PLAN_DATA: Record<
 
 export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: CheckoutModalProps) {
   const navigate = useNavigate()
-  const [selectedPlan, setSelectedPlan] = useState<ActivePlanId>(initialPlan)
+  const safeInitialPlan = (initialPlan === 'memento_complete' ? 'memento_four' : initialPlan) as 'memento_duo' | 'memento_four'
+  const [selectedPlan, setSelectedPlan] = useState<'memento_duo' | 'memento_four'>(safeInitialPlan)
   const [email, setEmail] = useState('')
   const [loadingText, setLoadingText] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    setSelectedPlan(initialPlan)
+    const normalized = (initialPlan === 'memento_complete' ? 'memento_four' : initialPlan) as 'memento_duo' | 'memento_four'
+    setSelectedPlan(normalized)
     setErrorMessage(null)
     setLoadingText(null)
   }, [initialPlan, isOpen])
@@ -94,6 +96,11 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMessage(null)
+
+    if (selectedPlan === ('memento_complete' as any)) {
+      setErrorMessage('Memento Complete is currently coming soon.')
+      return
+    }
 
     const cleanEmail = email.trim().toLowerCase()
     if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
@@ -201,8 +208,8 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: 
         {/* Content Body */}
         <form onSubmit={handleSubmit} style={{ padding: '24px 26px 28px' }}>
           {/* Plan Selector Pills */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
-            {(['memento_duo', 'memento_four', 'memento_complete'] as const).map(pKey => {
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
+            {(['memento_duo', 'memento_four'] as const).map(pKey => {
               const pItem = PLAN_DATA[pKey]
               const isSelected = selectedPlan === pKey
               return (
@@ -218,16 +225,16 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: 
                     background: isSelected ? 'rgba(56,189,248,0.12)' : 'rgba(255,255,255,0.03)',
                     border: `1px solid ${isSelected ? SKY_MID : BORDER}`,
                     borderRadius: 12,
-                    padding: '10px 8px',
+                    padding: '12px 10px',
                     textAlign: 'center',
                     cursor: loadingText ? 'not-allowed' : 'pointer',
                     transition: '.18s',
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 600, color: isSelected ? '#FFFFFF' : TEXT2 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: isSelected ? '#FFFFFF' : TEXT2 }}>
                     {pItem.name}
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: isSelected ? SKY_B : '#FFFFFF', marginTop: 2 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: isSelected ? SKY_B : '#FFFFFF', marginTop: 2 }}>
                     {pItem.price}
                   </div>
                 </button>

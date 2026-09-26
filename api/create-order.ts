@@ -47,6 +47,15 @@ export default async function handler(req: any, res: any) {
       return res.end(JSON.stringify({ error: 'Invalid plan selected' }))
     }
 
+    if (planConfig.id === 'memento_complete') {
+      res.statusCode = 400
+      return res.end(
+        JSON.stringify({
+          error: 'Memento Complete is coming soon and currently unavailable for new purchases.',
+        })
+      )
+    }
+
     // Amount is determined strictly SERVER-SIDE
     const amount = planConfig.amount
     const currency = planConfig.currency || 'INR'

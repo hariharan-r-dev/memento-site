@@ -267,22 +267,21 @@ export default function ActivatePage() {
                 </button>
 
                 <button
-                  onClick={() => handleDownload('macos')}
-                  disabled={downloadingWin || downloadingMac}
+                  disabled={true}
                   style={{
-                    background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                    color: '#04121C',
-                    border: 'none',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'rgba(255, 255, 255, 0.4)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     borderRadius: 10,
                     padding: '12px 16px',
                     textAlign: 'center',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     fontSize: 13.5,
-                    cursor: downloadingWin || downloadingMac ? 'wait' : 'pointer',
-                    opacity: downloadingWin || downloadingMac ? 0.8 : 1,
+                    cursor: 'not-allowed',
+                    opacity: 0.6,
                   }}
                 >
-                  {downloadingMac ? 'Preparing download…' : 'Download macOS (.dmg)'}
+                  Launching Soon
                 </button>
               </div>
             </div>

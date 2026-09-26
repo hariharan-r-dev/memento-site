@@ -273,7 +273,7 @@ export default function TermsPage() {
                 <li>any particular real-world outcome</li>
               </ul>
               <p style={{ margin: 0, fontStyle: 'italic', color: '#E2E8F0' }}>
-                If you buy a lucky charm, enjoy the charm. The luck is up to you.
+                If you buy a Memento charm, enjoy the charm. The luck is up to you.
               </p>
             </div>
           </section>
