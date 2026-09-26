@@ -128,12 +128,15 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
+        height: '100%',
+        boxSizing: 'border-box',
         transform: highlighted ? 'translateY(-4px)' : 'none',
         transition: 'transform .2s ease, border-color .2s ease',
       }}
     >
-      {badge && (
-        <div style={{ marginBottom: 12 }}>
+      {/* Badge container with consistent minHeight so titles & prices align */}
+      <div style={{ minHeight: 28, marginBottom: 12, display: 'flex', alignItems: 'center' }}>
+        {badge && (
           <span
             style={{
               display: 'inline-block',
@@ -149,15 +152,15 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
           >
             {badge}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div style={{ fontWeight: 700, fontSize: 20, color: '#F8FAFC', marginBottom: 4 }}>
         {name}
       </div>
 
       {subtitle && (
-        <div style={{ color: TEXT2, fontSize: 13.5, marginBottom: 18 }}>
+        <div style={{ color: TEXT2, fontSize: 13.5, marginBottom: 18, minHeight: 20 }}>
           {subtitle}
         </div>
       )}
@@ -183,41 +186,43 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
         ))}
       </ul>
 
-      {/* CTA */}
-      <button
-        onClick={disabled ? undefined : onSelect}
-        disabled={disabled}
-        style={{
-          width: '100%',
-          fontFamily: F,
-          fontWeight: 700,
-          fontSize: 15,
-          borderRadius: 12,
-          padding: '15px 24px',
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.6 : 1,
-          transition: 'all .18s ease',
-          ...(disabled
-            ? {
-                background: 'rgba(255,255,255,0.03)',
-                color: MUTED,
-                border: `1px solid ${BORDER}`,
-              }
-            : primary
-            ? {
-                background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
-                color: '#04121C',
-                border: 'none',
-              }
-            : {
-                background: 'rgba(255,255,255,0.04)',
-                color: '#F8FAFC',
-                border: `1px solid ${BORDER}`,
-              }),
-        }}
-      >
-        {cta}
-      </button>
+      {/* CTA Button pinned to bottom */}
+      <div style={{ marginTop: 'auto' }}>
+        <button
+          onClick={disabled ? undefined : onSelect}
+          disabled={disabled}
+          style={{
+            width: '100%',
+            fontFamily: F,
+            fontWeight: 700,
+            fontSize: 15,
+            borderRadius: 12,
+            padding: '15px 24px',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            opacity: disabled ? 0.6 : 1,
+            transition: 'all .18s ease',
+            ...(disabled
+              ? {
+                  background: 'rgba(255,255,255,0.03)',
+                  color: MUTED,
+                  border: `1px solid ${BORDER}`,
+                }
+              : primary
+              ? {
+                  background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
+                  color: '#04121C',
+                  border: 'none',
+                }
+              : {
+                  background: 'rgba(255,255,255,0.04)',
+                  color: '#F8FAFC',
+                  border: `1px solid ${BORDER}`,
+                }),
+          }}
+        >
+          {cta}
+        </button>
+      </div>
     </div>
   )
 }
@@ -468,7 +473,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <div style={{ color: MUTED, fontSize: 13.5 }}>Windows + macOS · One-time purchase</div>
+            <div style={{ color: MUTED, fontSize: 13.5 }}>Windows available · macOS launching soon · One-time purchase</div>
           </div>
 
           {/* Right spacer for 2-col hero grid on desktop */}
@@ -1219,7 +1224,7 @@ export default function HomePage() {
               alignItems: 'stretch',
             }}
           >
-            <Reveal delay={0}>
+            <Reveal delay={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <PricingCard
                 name="Memento Duo"
                 subtitle="Start your collection."
@@ -1228,14 +1233,14 @@ export default function HomePage() {
                 features={[
                   'Choose any 2 Mementos',
                   'Desktop companion with physics',
-                  'Windows + macOS included',
+                  'Windows available · macOS launching soon',
                   'Future standard updates',
                 ]}
                 cta="Get Memento Duo"
                 onSelect={() => setCheckoutPlan('memento_duo')}
               />
             </Reveal>
-            <Reveal delay={80}>
+            <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <PricingCard
                 badge="Popular"
                 name="Memento Four"
@@ -1245,7 +1250,7 @@ export default function HomePage() {
                 features={[
                   'Choose any 4 Mementos',
                   'Desktop companion with physics',
-                  'Windows + macOS included',
+                  'Windows available · macOS launching soon',
                   'Future standard updates',
                 ]}
                 cta="Get Memento Four"
@@ -1254,7 +1259,7 @@ export default function HomePage() {
                 onSelect={() => setCheckoutPlan('memento_four')}
               />
             </Reveal>
-            <Reveal delay={160}>
+            <Reveal delay={160} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <PricingCard
                 badge="Coming Soon"
                 name="Memento Complete"
@@ -1266,7 +1271,7 @@ export default function HomePage() {
                   'Choose 4 Mementos',
                   '1 Surprise Charm',
                   'Desktop companion with physics',
-                  'Windows + macOS included',
+                  'Windows available · macOS launching soon',
                   'Future standard updates',
                   'Customisation — Coming Soon',
                 ]}
@@ -1292,7 +1297,7 @@ export default function HomePage() {
                 One purchase. No recurring subscription.
               </div>
               <div style={{ color: TEXT2, fontSize: 14.5 }}>
-                Windows + macOS included.
+                Windows available · macOS launching soon.
               </div>
               <div style={{ color: MUTED, fontSize: 13.5, marginTop: 4 }}>
                 Choose your Mementos. Make them yours. Keep them on your desktop.

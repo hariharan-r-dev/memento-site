@@ -365,7 +365,7 @@ export default function SuccessPage() {
           </div>
 
           <div style={{ fontSize: 12.5, color: MUTED, marginTop: 14, lineHeight: 1.5 }}>
-            💡 Keep this license key safe. You will enter this key when opening the Memento desktop app on Windows or macOS.
+            💡 Keep this license key safe. You will enter this key when opening the Memento desktop app on Windows (or macOS once launched).
           </div>
         </div>
 

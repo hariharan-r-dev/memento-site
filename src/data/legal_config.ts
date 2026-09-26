@@ -6,7 +6,7 @@
 export const LEGAL_CONFIG = {
   brandName: 'Memento',
   legalEntity: '[MEMENTO LEGAL ENTITY — TO BE CONFIRMED]',
-  supportEmail: '[SUPPORT EMAIL]',
+  supportEmail: 'helplinememento@gmail.com',
   paymentProvider: '[PAYMENT PROVIDER — TO BE CONFIRMED]',
   governingLaw: '[GOVERNING LAW / JURISDICTION — TO BE CONFIRMED]',
   lastUpdated: 'September 24, 2026',
@@ -19,5 +19,5 @@ export const LEGAL_CONFIG = {
     model: 'One-time purchase (No subscriptions)',
   },
 
-  platforms: ['Windows', 'macOS'],
+  platforms: ['Windows', 'macOS (Launching Soon)'],
 }

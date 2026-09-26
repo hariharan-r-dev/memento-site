@@ -18,7 +18,7 @@ export default function TermsPage() {
     if (metaDesc) {
       metaDesc.setAttribute(
         'content',
-        'The terms governing the purchase and use of Memento for Windows and macOS.'
+        'The terms governing the purchase and use of Memento for Windows (with macOS launching soon).'
       )
     }
   }, [])
@@ -95,7 +95,7 @@ export default function TermsPage() {
           </h1>
 
           <p style={{ fontSize: 'clamp(16px,2vw,18.5px)', color: TEXT2, lineHeight: 1.7, maxWidth: 700, margin: '0 auto 24px', fontWeight: 400 }}>
-            Memento is a desktop companion and collection of digital charms for Windows and macOS.
+            Memento is a desktop companion and collection of digital charms for Windows (with macOS launching soon).
             These Terms explain the rules for purchasing and using Memento.
           </p>
 
@@ -355,16 +355,53 @@ export default function TermsPage() {
           </section>
 
           {/* Section 14 */}
+          <section style={{ marginBottom: 52, borderTop: `1px solid ${BORDER}`, paddingTop: 40 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.02em', marginBottom: 18 }}>
+              14. Email and promotional communications
+            </h2>
+            <p style={{ margin: '0 0 14px' }}>
+              The email address you enter during purchase is used to communicate with you regarding your purchase, license information, and transaction details.
+            </p>
+            <p style={{ margin: '0 0 14px' }}>
+              By providing your email address during purchase, you acknowledge that Memento may use that email address to send product updates, new Memento releases, collection announcements, offers, and other promotional communications related to Memento.
+            </p>
+            <p style={{ margin: '0 0 14px' }}>
+              These communications may include announcements about new collections, feature updates, special offers, and related product news.
+            </p>
+            <p style={{ margin: 0 }}>
+              If you have any questions regarding your communications, you can contact us at{' '}
+              <a
+                href={`mailto:${LEGAL_CONFIG.supportEmail}`}
+                style={{ color: SKY, textDecoration: 'none' }}
+                onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+              >
+                {LEGAL_CONFIG.supportEmail}
+              </a>.
+            </p>
+          </section>
+
+          {/* Section 15 */}
           <section style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 40 }}>
             <h2 style={{ fontSize: 24, fontWeight: 700, color: '#F8FAFC', letterSpacing: '-0.02em', marginBottom: 18 }}>
-              14. Contact
+              15. Contact
             </h2>
             <p style={{ margin: '0 0 16px' }}>
               Questions about Memento, purchases, or these Terms?
             </p>
             <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', fontSize: 15, lineHeight: 1.8 }}>
               <div><strong style={{ color: '#F8FAFC' }}>Product:</strong> {LEGAL_CONFIG.brandName}</div>
-              <div><strong style={{ color: '#F8FAFC' }}>Contact Email:</strong> {LEGAL_CONFIG.supportEmail}</div>
+              <div>
+                <strong style={{ color: '#F8FAFC' }}>Support:</strong>{' '}
+                <a
+                  href={`mailto:${LEGAL_CONFIG.supportEmail}`}
+                  style={{ color: SKY, textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                  onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+                >
+                  {LEGAL_CONFIG.supportEmail}
+                </a>
+              </div>
             </div>
           </section>
 

@@ -87,33 +87,47 @@ export default function Root() {
         {/* Desktop links */}
         <ul className="hidden md:flex" style={{ gap: 36, listStyle: 'none', margin: 0, padding: 0 }}>
           {[
-            { label: 'Collections', href: '#collections' },
-            { label: 'How it works', href: '#how-it-works' },
-            { label: 'Customize', href: '#customize' },
-            { label: 'Pricing', href: '#pricing' },
-          ].map(({ label, href }) => (
+            { label: 'Collections', href: isHome ? '#collections' : '/#collections' },
+            { label: 'How it works', href: isHome ? '#how-it-works' : '/#how-it-works' },
+            { label: 'Customize', href: isHome ? '#customize' : '/#customize' },
+            { label: 'Pricing', href: isHome ? '#pricing' : '/#pricing' },
+            { label: 'FAQ', href: '/faq', isRoute: true },
+          ].map(({ label, href, isRoute }) => (
             <li key={label}>
-              <a
-                href={href}
-                style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, transition: 'color .2s', fontFamily: F }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#F8FAFC')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#94A3B8')}
-              >
-                {label}
-              </a>
+              {isRoute ? (
+                <Link
+                  to={href}
+                  style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, transition: 'color .2s', fontFamily: F }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#F8FAFC')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#94A3B8')}
+                >
+                  {label}
+                </Link>
+              ) : (
+                <a
+                  href={href}
+                  style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 14.5, fontWeight: 500, transition: 'color .2s', fontFamily: F }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#F8FAFC')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#94A3B8')}
+                >
+                  {label}
+                </a>
+              )}
             </li>
           ))}
         </ul>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button
+          <a
+            href={isHome ? '#pricing' : '/#pricing'}
             style={{
               background: '#F8FAFC', color: '#050810', border: 'none', borderRadius: 999,
               padding: '10px 20px', fontFamily: F, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              textDecoration: 'none', display: 'inline-block',
             }}
           >
             Download
-          </button>
+          </a>
           {/* Mobile hamburger */}
           <button
             className="md:hidden"
@@ -133,16 +147,33 @@ export default function Root() {
               padding: '20px clamp(20px,5vw,64px)', display: 'flex', flexDirection: 'column', gap: 16,
             }}
           >
-            {['Collections', 'How it works', 'Customize', 'Pricing'].map(l => (
-              <a
-                key={l}
-                href={`#${l.toLowerCase().replace(/ /g, '-')}`}
-                onClick={() => setMobileOpen(false)}
-                style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontFamily: F }}
-              >
-                {l}
-              </a>
-            ))}
+            {[
+              { label: 'Collections', href: isHome ? '#collections' : '/#collections' },
+              { label: 'How it works', href: isHome ? '#how-it-works' : '/#how-it-works' },
+              { label: 'Customize', href: isHome ? '#customize' : '/#customize' },
+              { label: 'Pricing', href: isHome ? '#pricing' : '/#pricing' },
+              { label: 'FAQ', href: '/faq', isRoute: true },
+            ].map(({ label, href, isRoute }) =>
+              isRoute ? (
+                <Link
+                  key={label}
+                  to={href}
+                  onClick={() => setMobileOpen(false)}
+                  style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontFamily: F }}
+                >
+                  {label}
+                </Link>
+              ) : (
+                <a
+                  key={label}
+                  href={href}
+                  onClick={() => setMobileOpen(false)}
+                  style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontFamily: F }}
+                >
+                  {label}
+                </a>
+              )
+            )}
           </div>
         )}
       </nav>
@@ -169,7 +200,7 @@ export default function Root() {
             { label: 'Customize', href: '/#customize' },
             { label: 'Pricing', href: '/#pricing' },
             { label: 'Updates', href: '/updates' },
-            { label: 'Download', href: '#' },
+            { label: 'FAQ', href: '/faq' },
             { label: 'Privacy', href: '/privacy' },
             { label: 'Terms', href: '/terms' },
           ].map(({ label, href }) => (

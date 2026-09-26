@@ -39,7 +39,7 @@ const PLAN_DATA: Record<
     features: [
       'Choose any 2 Mementos',
       'Desktop companion with physics',
-      'Windows + macOS included',
+      'Windows available · macOS launching soon',
       'Future standard updates',
     ],
   },
@@ -52,7 +52,7 @@ const PLAN_DATA: Record<
     features: [
       'Choose any 4 Mementos',
       'Desktop companion with physics',
-      'Windows + macOS included',
+      'Windows available · macOS launching soon',
       'Future standard updates',
     ],
   },
@@ -67,7 +67,7 @@ const PLAN_DATA: Record<
       'Choose 4 Mementos',
       '1 Surprise Charm',
       'Desktop companion with physics',
-      'Windows + macOS included',
+      'Windows available · macOS launching soon',
       'Future standard updates',
       'Customisation — Coming Soon',
     ],

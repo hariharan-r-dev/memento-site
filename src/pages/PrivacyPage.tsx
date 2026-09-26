@@ -367,7 +367,17 @@ export default function PrivacyPage() {
             </p>
             <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 14, padding: '20px 24px', fontSize: 15, lineHeight: 1.8 }}>
               <div><strong style={{ color: '#F8FAFC' }}>Product:</strong> {LEGAL_CONFIG.brandName}</div>
-              <div><strong style={{ color: '#F8FAFC' }}>Contact Email:</strong> {LEGAL_CONFIG.supportEmail}</div>
+              <div>
+                <strong style={{ color: '#F8FAFC' }}>Support:</strong>{' '}
+                <a
+                  href={`mailto:${LEGAL_CONFIG.supportEmail}`}
+                  style={{ color: SKY, textDecoration: 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.textDecoration = 'underline')}
+                  onMouseLeave={e => (e.currentTarget.style.textDecoration = 'none')}
+                >
+                  {LEGAL_CONFIG.supportEmail}
+                </a>
+              </div>
             </div>
           </section>
 
