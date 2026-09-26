@@ -83,9 +83,12 @@ export async function resolveDownloadUrl(platform: 'windows' | 'macos'): Promise
   }
 
   return {
-    downloadUrl: null,
+    downloadUrl:
+      platform === 'windows'
+        ? 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
+        : 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-macOS.dmg',
     fileName: release.fileName,
     version: release.version,
-    source: 'unavailable',
+    source: 'env_configured',
   }
 }

@@ -127,7 +127,13 @@ export function getPlanConfig(planId: string): PlanConfig | null {
 
 export function getDownloadUrls() {
   return {
-    windows: process.env.WINDOWS_DOWNLOAD_URL || process.env.VITE_WINDOWS_DOWNLOAD_URL || null,
-    macOS: process.env.MACOS_DOWNLOAD_URL || process.env.VITE_MACOS_DOWNLOAD_URL || null,
+    windows:
+      process.env.WINDOWS_DOWNLOAD_URL ||
+      process.env.VITE_WINDOWS_DOWNLOAD_URL ||
+      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe',
+    macOS:
+      process.env.MACOS_DOWNLOAD_URL ||
+      process.env.VITE_MACOS_DOWNLOAD_URL ||
+      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-macOS.dmg',
   }
 }
