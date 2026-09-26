@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS purchases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT NOT NULL,
-  plan TEXT NOT NULL CHECK (plan IN ('memento', 'memento_custom', 'memento_complete')),
+  plan TEXT NOT NULL CHECK (plan IN ('memento', 'memento_custom', 'memento_complete', 'memento_duo', 'memento_four')),
   amount INTEGER NOT NULL, -- in INR paise (e.g. 28900)
   currency TEXT NOT NULL DEFAULT 'INR',
   razorpay_order_id TEXT UNIQUE NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS licenses (
   license_key TEXT UNIQUE NOT NULL,
   purchase_id UUID REFERENCES purchases(id) ON DELETE CASCADE,
   email TEXT NOT NULL,
-  plan TEXT NOT NULL CHECK (plan IN ('memento', 'memento_custom', 'memento_complete')),
+  plan TEXT NOT NULL CHECK (plan IN ('memento', 'memento_custom', 'memento_complete', 'memento_duo', 'memento_four')),
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'revoked', 'expired')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   activated_at TIMESTAMPTZ,
