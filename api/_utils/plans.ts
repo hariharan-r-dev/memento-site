@@ -1,22 +1,65 @@
-export type PlanId = 'memento' | 'memento_custom' | 'memento_complete'
+export type ActivePlanId = 'memento_duo' | 'memento_four' | 'memento_complete'
+export type LegacyPlanId = 'memento' | 'memento_custom'
+export type PlanId = ActivePlanId | LegacyPlanId
 
 export interface PlanConfig {
   id: PlanId
   name: string
   price: number // in INR (display)
-  amount: number // in INR paise (for Razorpay: ₹289 = 28900)
+  amount: number // in INR paise (for Razorpay: 349 = 34900, 649 = 64900, 949 = 94900)
   currency: string
   entitlements: {
-    maxMementos: number | null // null means unlimited/all
+    maxMementos: number | null
     customization: boolean
     allCollections: boolean
+    surpriseCharm?: boolean
   }
 }
 
 export const PLANS: Record<PlanId, PlanConfig> = {
+  memento_duo: {
+    id: 'memento_duo',
+    name: 'Memento Duo',
+    price: 349,
+    amount: 34900,
+    currency: 'INR',
+    entitlements: {
+      maxMementos: 2,
+      customization: false,
+      allCollections: false,
+      surpriseCharm: false,
+    },
+  },
+  memento_four: {
+    id: 'memento_four',
+    name: 'Memento Four',
+    price: 649,
+    amount: 64900,
+    currency: 'INR',
+    entitlements: {
+      maxMementos: 4,
+      customization: false,
+      allCollections: false,
+      surpriseCharm: false,
+    },
+  },
+  memento_complete: {
+    id: 'memento_complete',
+    name: 'Memento Complete',
+    price: 949,
+    amount: 94900,
+    currency: 'INR',
+    entitlements: {
+      maxMementos: 4,
+      customization: false,
+      allCollections: true,
+      surpriseCharm: true,
+    },
+  },
+  // Legacy plan compatibility (for previously purchased licenses)
   memento: {
     id: 'memento',
-    name: 'Memento',
+    name: 'Memento (Legacy)',
     price: 289,
     amount: 28900,
     currency: 'INR',
@@ -24,11 +67,12 @@ export const PLANS: Record<PlanId, PlanConfig> = {
       maxMementos: 2,
       customization: false,
       allCollections: false,
+      surpriseCharm: false,
     },
   },
   memento_custom: {
     id: 'memento_custom',
-    name: 'Memento Custom',
+    name: 'Memento Custom (Legacy)',
     price: 389,
     amount: 38900,
     currency: 'INR',
@@ -36,23 +80,37 @@ export const PLANS: Record<PlanId, PlanConfig> = {
       maxMementos: 2,
       customization: true,
       allCollections: false,
-    },
-  },
-  memento_complete: {
-    id: 'memento_complete',
-    name: 'Memento Complete',
-    price: 549,
-    amount: 54900,
-    currency: 'INR',
-    entitlements: {
-      maxMementos: null,
-      customization: true,
-      allCollections: true,
+      surpriseCharm: false,
     },
   },
 }
 
-export const REGISTERED_MEMENTO_IDS: readonly string[] = ['ferrari', 'venkateswara', 'kandhan']
+export const REGISTERED_MEMENTO_IDS: readonly string[] = [
+  'ferrari',
+  'red-car',
+  'venkateswara',
+  'kandhan',
+  'murugan',
+  'croissant',
+  'chocolate-strawberry',
+  'chocolate-strawberries',
+  'chocolate-milkshake',
+  'pistachio-chocolate-donut',
+  'chocolate-pistachio-pastry',
+  'matcha-drink',
+  'matcha',
+  'disco-ball-stars',
+  'iron-man',
+  'maneki-neko',
+  'lucky-cat',
+  'evil-eye',
+  'hamsa',
+  'drishti-bommai',
+  'nimbu-mirchi',
+  'daruma',
+  'lucky-coin',
+  'bell',
+]
 
 export function getAllRegisteredMementoIds(): string[] {
   return [...REGISTERED_MEMENTO_IDS]

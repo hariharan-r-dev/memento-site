@@ -13,9 +13,9 @@ export const LEGAL_CONFIG = {
   effectiveDate: 'September 24, 2026',
 
   pricing: {
-    memento: '₹289',
-    mementoCustom: '₹389',
-    mementoComplete: '₹549',
+    mementoDuo: '₹349',
+    mementoFour: '₹649',
+    mementoComplete: '₹949',
     model: 'One-time purchase (No subscriptions)',
   },
 

@@ -1134,16 +1134,16 @@ export default function HomePage() {
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
                 <button
-                  onClick={() => setCheckoutPlan('memento_custom')}
+                  onClick={() => setCheckoutPlan('memento_complete')}
                   style={{
                     background: `linear-gradient(180deg,${SKY_B},${SKY_MID})`,
                     color: '#04121C', border: 'none', borderRadius: 12, padding: '15px 26px',
                     fontFamily: F, fontWeight: 700, fontSize: 15, cursor: 'pointer',
                   }}
                 >
-                  Create a Memento
+                  Customisation — Coming Soon
                 </button>
-                <span style={{ color: MUTED, fontSize: 13.5 }}>₹389 one-time</span>
+                <span style={{ color: MUTED, fontSize: 13.5 }}>Included in Complete plan</span>
               </div>
             </Reveal>
 
@@ -1205,39 +1205,37 @@ export default function HomePage() {
           >
             <Reveal delay={0}>
               <PricingCard
-                name="Memento"
+                name="Memento Duo"
                 subtitle="Start your collection."
-                amount="₹289"
+                amount="₹349"
                 unit="One-time purchase"
                 features={[
-                  'Choose any 2 Mementos from the available collections',
-                  'Desktop companion',
-                  'Windows + macOS',
+                  'Choose any 2 Mementos',
+                  'Desktop companion with physics',
+                  'Windows + macOS included',
                   'Future standard updates',
                 ]}
-                cta="Get Memento"
-                onSelect={() => setCheckoutPlan('memento')}
+                cta="Get Memento Duo"
+                onSelect={() => setCheckoutPlan('memento_duo')}
               />
             </Reveal>
             <Reveal delay={80}>
               <PricingCard
-                badge="Make it yours"
-                name="Memento Custom"
-                subtitle="A little more personal."
-                amount="₹389"
+                badge="Popular"
+                name="Memento Four"
+                subtitle="Our most popular companion pack."
+                amount="₹649"
                 unit="One-time purchase"
                 features={[
-                  'Choose any 2 Mementos from the available collections',
-                  'Customization',
-                  'Create a personalized Memento',
-                  'Desktop companion',
-                  'Windows + macOS',
+                  'Choose any 4 Mementos',
+                  'Desktop companion with physics',
+                  'Windows + macOS included',
                   'Future standard updates',
                 ]}
-                cta="Customize your Memento"
+                cta="Get Memento Four"
                 primary
                 highlighted
-                onSelect={() => setCheckoutPlan('memento_custom')}
+                onSelect={() => setCheckoutPlan('memento_four')}
               />
             </Reveal>
             <Reveal delay={160}>
@@ -1245,15 +1243,16 @@ export default function HomePage() {
                 badge="Collector"
                 name="Memento Complete"
                 subtitle="The complete collection."
-                amount="₹549"
+                amount="₹949"
                 unit="One-time purchase"
                 features={[
-                  'Access to all current Memento collections',
-                  'Customization',
-                  'Create personalized Mementos',
-                  'Desktop companion',
-                  'Windows + macOS',
+                  'Access all Mementos / collections',
+                  'Choose 4 Mementos',
+                  '1 Surprise Charm',
+                  'Desktop companion with physics',
+                  'Windows + macOS included',
                   'Future standard updates',
+                  'Customisation — Coming Soon',
                 ]}
                 cta="Get Complete"
                 onSelect={() => setCheckoutPlan('memento_complete')}

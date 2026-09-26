@@ -25,7 +25,7 @@ export function loadRazorpayScript(): Promise<boolean> {
   return scriptPromise
 }
 
-export type PlanId = 'memento' | 'memento_custom' | 'memento_complete'
+export type PlanId = 'memento_duo' | 'memento_four' | 'memento_complete'
 
 export interface CheckoutParams {
   plan: string

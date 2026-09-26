@@ -1,16 +1,14 @@
-import ferrariSrc from '../assets/charms/ferrari.png'
-import venkateswaraSrc from '../assets/charms/venkateswara.jpg'
-import kandhanSrc from '../assets/charms/kandhan.jpg'
+﻿import ferrariSrc from "../assets/charms/ferrari.png"
+import venkateswaraSrc from "../assets/charms/venkateswara.png"
+import kandhanSrc from "../assets/charms/kandhan.png"
+import croissantSrc from "../assets/charms/croissant.png"
+import chocolateMilkshakeSrc from "../assets/charms/chocolate-milkshake.png"
+import chocolateStrawberrySrc from "../assets/charms/chocolate-strawberry.png"
+import pistachioChocolateDonutSrc from "../assets/charms/pistachio-chocolate-donut.png"
+import matchaDrinkSrc from "../assets/charms/matcha-drink.png"
+import discoBallStarsSrc from "../assets/charms/disco-ball-stars.png"
+import ironManSrc from "../assets/charms/iron-man.png"
 
-/**
- * Per-charm visual configuration & explicit attachment coordinates.
- *
- * cropTop – fraction (0–1) of the image height to clip from the top.
- * attachmentPoint – normalized { x, y } coordinates (0..1) on the cropped image
- *                   where the hardware connector attaches to the charm.
- * displayWidth / displayWidthSm – the CSS pixel width used when the charm
- *           hangs in the interactive physics system (desktop / mobile).
- */
 export interface CharmVisual {
   src: string
   cropTop: number
@@ -23,19 +21,26 @@ export interface CharmVisual {
 }
 
 export const CHARM_VISUALS: Record<string, CharmVisual> = {
-  /** Red Ferrari F40 — wide horizontal charm.
-   *  cropTop hides the red dotted artwork rope; attachment point is the top gold mount. */
   ferrari: {
     src: ferrariSrc,
-    cropTop: 0.44,
-    displayWidth: 180,
-    displayWidthSm: 130,
+    cropTop: 0,
+    displayWidth: 175,
+    displayWidthSm: 125,
     attachmentPoint: {
-      x: 0.5,
-      y: 0.0,
+      x: 0.494,
+      y: 0.08,
     },
   },
-  /** Lord Venkateswara (Balaji / Tirupati) — tall vertical, attachment at the top crown mount. */
+  "red-car": {
+    src: ferrariSrc,
+    cropTop: 0,
+    displayWidth: 175,
+    displayWidthSm: 125,
+    attachmentPoint: {
+      x: 0.494,
+      y: 0.08,
+    },
+  },
   venkateswara: {
     src: venkateswaraSrc,
     cropTop: 0,
@@ -46,12 +51,121 @@ export const CHARM_VISUALS: Record<string, CharmVisual> = {
       y: 0.015,
     },
   },
-  /** Kandhan Karunai — baby Murugan, attachment at the top halo/ornament ring. */
   kandhan: {
     src: kandhanSrc,
     cropTop: 0,
-    displayWidth: 145,
-    displayWidthSm: 112,
+    displayWidth: 112,
+    displayWidthSm: 88,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  murugan: {
+    src: kandhanSrc,
+    cropTop: 0,
+    displayWidth: 112,
+    displayWidthSm: 88,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  croissant: {
+    src: croissantSrc,
+    cropTop: 0,
+    displayWidth: 150,
+    displayWidthSm: 115,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "chocolate-strawberry": {
+    src: chocolateStrawberrySrc,
+    cropTop: 0,
+    displayWidth: 140,
+    displayWidthSm: 110,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "chocolate-strawberries": {
+    src: chocolateStrawberrySrc,
+    cropTop: 0,
+    displayWidth: 140,
+    displayWidthSm: 110,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "chocolate-milkshake": {
+    src: chocolateMilkshakeSrc,
+    cropTop: 0,
+    displayWidth: 135,
+    displayWidthSm: 105,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "pistachio-chocolate-donut": {
+    src: pistachioChocolateDonutSrc,
+    cropTop: 0,
+    displayWidth: 155,
+    displayWidthSm: 120,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "chocolate-pistachio-pastry": {
+    src: pistachioChocolateDonutSrc,
+    cropTop: 0,
+    displayWidth: 155,
+    displayWidthSm: 120,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "matcha-drink": {
+    src: matchaDrinkSrc,
+    cropTop: 0,
+    displayWidth: 112,
+    displayWidthSm: 88,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  matcha: {
+    src: matchaDrinkSrc,
+    cropTop: 0,
+    displayWidth: 112,
+    displayWidthSm: 88,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "disco-ball-stars": {
+    src: discoBallStarsSrc,
+    cropTop: 0,
+    displayWidth: 150,
+    displayWidthSm: 115,
+    attachmentPoint: {
+      x: 0.5,
+      y: 0.01,
+    },
+  },
+  "iron-man": {
+    src: ironManSrc,
+    cropTop: 0,
+    displayWidth: 135,
+    displayWidthSm: 105,
     attachmentPoint: {
       x: 0.5,
       y: 0.01,

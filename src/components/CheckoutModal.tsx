@@ -12,34 +12,45 @@ const MUTED      = '#64748B'
 const BORDER     = 'rgba(148,163,184,0.16)'
 const F          = "'Plus Jakarta Sans', system-ui, sans-serif"
 
+export type ActivePlanId = 'memento_duo' | 'memento_four' | 'memento_complete'
+
 export interface CheckoutModalProps {
   isOpen: boolean
   onClose: () => void
-  initialPlan?: 'memento' | 'memento_custom' | 'memento_complete'
+  initialPlan?: ActivePlanId
 }
 
-const PLAN_DATA = {
-  memento: {
-    id: 'memento',
-    name: 'Memento',
-    price: '₹289',
+const PLAN_DATA: Record<
+  ActivePlanId,
+  {
+    id: ActivePlanId
+    name: string
+    price: string
+    tagline: string
+    badge?: string
+    features: string[]
+  }
+> = {
+  memento_duo: {
+    id: 'memento_duo',
+    name: 'Memento Duo',
+    price: '₹349',
     tagline: 'Start your collection',
     features: [
-      'Choose any 2 Mementos from available collections',
+      'Choose any 2 Mementos',
       'Desktop companion with physics',
       'Windows + macOS included',
       'Future standard updates',
     ],
   },
-  memento_custom: {
-    id: 'memento_custom',
-    name: 'Memento Custom',
-    price: '₹389',
-    tagline: 'A little more personal',
-    badge: 'Make it yours',
+  memento_four: {
+    id: 'memento_four',
+    name: 'Memento Four',
+    price: '₹649',
+    tagline: 'Our most popular pack',
+    badge: 'Popular',
     features: [
-      'Choose any 2 Mementos from available collections',
-      'Personalized custom Memento creation',
+      'Choose any 4 Mementos',
       'Desktop companion with physics',
       'Windows + macOS included',
       'Future standard updates',
@@ -48,22 +59,24 @@ const PLAN_DATA = {
   memento_complete: {
     id: 'memento_complete',
     name: 'Memento Complete',
-    price: '₹549',
+    price: '₹949',
     tagline: 'The complete collection',
     badge: 'Collector',
     features: [
-      'Access to all current Memento collections',
-      'Personalized custom Memento creation',
+      'Access all Mementos / collections',
+      'Choose 4 Mementos',
+      '1 Surprise Charm',
       'Desktop companion with physics',
       'Windows + macOS included',
       'Future standard updates',
+      'Customisation — Coming Soon',
     ],
   },
 }
 
-export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento' }: CheckoutModalProps) {
+export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento_duo' }: CheckoutModalProps) {
   const navigate = useNavigate()
-  const [selectedPlan, setSelectedPlan] = useState<'memento' | 'memento_custom' | 'memento_complete'>(initialPlan)
+  const [selectedPlan, setSelectedPlan] = useState<ActivePlanId>(initialPlan)
   const [email, setEmail] = useState('')
   const [loadingText, setLoadingText] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -76,7 +89,7 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento' }: Chec
 
   if (!isOpen) return null
 
-  const plan = PLAN_DATA[selectedPlan] || PLAN_DATA.memento
+  const plan = PLAN_DATA[selectedPlan] || PLAN_DATA.memento_duo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -189,7 +202,7 @@ export function CheckoutModal({ isOpen, onClose, initialPlan = 'memento' }: Chec
         <form onSubmit={handleSubmit} style={{ padding: '24px 26px 28px' }}>
           {/* Plan Selector Pills */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
-            {(['memento', 'memento_custom', 'memento_complete'] as const).map(pKey => {
+            {(['memento_duo', 'memento_four', 'memento_complete'] as const).map(pKey => {
               const pItem = PLAN_DATA[pKey]
               const isSelected = selectedPlan === pKey
               return (
