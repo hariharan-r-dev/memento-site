@@ -227,7 +227,22 @@ export default function Root() {
             </li>
           ))}
         </ul>
-        <div style={{ color: '#64748B', fontSize: 12.5, width: '100%', marginTop: 30 }}>© 2026 Memento</div>
+        <div
+          style={{
+            color: '#64748B',
+            fontSize: 12.5,
+            width: '100%',
+            marginTop: 30,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <span>© 2026 Memento</span>
+          <span>Made by Hariharan R</span>
+        </div>
       </footer>
     </div>
   )

@@ -2,10 +2,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { InteractiveMemento } from '../components/InteractiveMemento'
 import { CharmArt } from '../components/CharmArt'
 import { CheckoutModal } from '../components/CheckoutModal'
-import type { PlanId } from '../lib/razorpay'
-import { trackPlanSelected } from '../lib/analytics'
+import { trackPlanSelected, trackDownloadClicked } from '../lib/analytics'
 import { collections } from '../data/collections'
 import type { Charm } from '../data/charms'
+
+/**
+ * Temporary Free Launch Mode Flag
+ * Set to `true` to enable free downloads across the website without checkout/payment.
+ * Set to `false` to easily restore the original paid Razorpay purchase flow.
+ */
+export const IS_FREE_LAUNCH = true
 
 /* ── Design tokens (mirrors the HTML :root) ───────────────────── */
 const BG = '#070B14'
@@ -62,7 +68,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 /* ── FeelCard (matches HTML .card) ───────────────────────────── */
 function FeelCard({ label, title, body }: { label: string; title: string; body: string }) {
   return (
-    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ background: SURFACE, border: `1px solid ${BORDER}`, borderRadius: 18, padding: 32, display: 'flex', flexDirection: 'column', gap: 16, height: '100%', boxSizing: 'border-box' }}>
       <div style={{ color: MUTED, fontSize: 12, fontWeight: 700, letterSpacing: '0.06em' }}>{label}</div>
       <h3 style={{ fontSize: 21, margin: 0, letterSpacing: '-0.01em', fontFamily: F }}>{title}</h3>
       <p style={{ color: TEXT2, fontSize: 14.5, lineHeight: 1.6, margin: 0 }}>{body}</p>
@@ -204,17 +210,17 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
             transition: 'all .18s ease',
             ...(disabled
               ? {
-                  background: 'rgba(255,255,255,0.03)',
-                  color: MUTED,
-                  border: `1px solid ${BORDER}`,
-                }
+                background: 'rgba(255,255,255,0.03)',
+                color: MUTED,
+                border: `1px solid ${BORDER}`,
+              }
               : primary
-              ? {
+                ? {
                   background: `linear-gradient(180deg, ${SKY_B}, ${SKY_MID})`,
                   color: '#04121C',
                   border: 'none',
                 }
-              : {
+                : {
                   background: 'rgba(255,255,255,0.04)',
                   color: '#F8FAFC',
                   border: `1px solid ${BORDER}`,
@@ -288,7 +294,37 @@ export default function HomePage() {
   const [demoRopeLen, setDemoRopeLen] = useState<number>(135)
   const [demoCharmScale, setDemoCharmScale] = useState<number>(1)
   const [activeColl, setActiveColl] = useState(ferrariCollId)
-  const [checkoutPlan, setCheckoutPlan] = useState<PlanId | null>(null)
+  const [checkoutPlan, setCheckoutPlan] = useState<any>(null)
+  const [downloadingWin, setDownloadingWin] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
+
+  const handleFreeWindowsDownload = async () => {
+    setDownloadingWin(true)
+    setDownloadError(null)
+    try {
+      trackDownloadClicked({
+        platform: 'windows',
+        plan: 'free',
+      })
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform: 'windows' }),
+      })
+      const data = await res.json().catch(() => ({}))
+      const targetUrl = data.downloadUrl || 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
+      const a = document.createElement('a')
+      a.href = targetUrl
+      a.download = data.fileName || 'Memento-Setup.exe'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    } catch {
+      window.location.href = 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
+    } finally {
+      setTimeout(() => setDownloadingWin(false), 1500)
+    }
+  }
 
   const collRef = useRef<HTMLElement>(null)
   const pricingRef = useRef<HTMLElement>(null)
@@ -472,11 +508,10 @@ export default function HomePage() {
                   borderRadius: 12, padding: '15px 26px', fontFamily: F, fontWeight: 600, fontSize: 15, cursor: 'pointer',
                 }}
               >
-                Get Memento
+                {IS_FREE_LAUNCH ? 'Get Memento Free' : 'Get Memento'}
               </button>
             </div>
 
-            <div style={{ color: MUTED, fontSize: 13.5 }}>Windows available · macOS launching soon · One-time purchase</div>
           </div>
 
           {/* Right spacer for 2-col hero grid on desktop */}
@@ -539,14 +574,14 @@ export default function HomePage() {
               </p>
             </div>
           </Reveal>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 22 }}>
-            <Reveal delay={0}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 22, alignItems: 'stretch' }}>
+            <Reveal delay={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <FeelCard label="Natural physics" title="It actually hangs." body="Real rope physics, momentum and movement make every Memento feel like something hanging from your screen." />
             </Reveal>
-            <Reveal delay={80}>
+            <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <FeelCard label="Made for your desktop" title="A little less ordinary." body="Your desktop is where you spend your time. Give it something worth keeping." />
             </Reveal>
-            <Reveal delay={160}>
+            <Reveal delay={160} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <FeelCard label="Always something to collect" title="Build your collection." body="Start with one Memento. Discover another. Keep the ones that mean something to you." />
             </Reveal>
           </div>
@@ -1164,7 +1199,7 @@ export default function HomePage() {
                 >
                   Customisation — Coming Soon
                 </button>
-                <span style={{ color: MUTED, fontSize: 13.5 }}>Coming soon in Complete plan</span>
+
               </div>
             </Reveal>
 
@@ -1200,19 +1235,27 @@ export default function HomePage() {
       </section>
 
       {/* ════════════════════════════════════════════════════════
-          PRICING — matches HTML .price-row
+          PRICING / DOWNLOAD SECTION
           ════════════════════════════════════════════════════════ */}
       <section id="pricing" ref={pricingRef} style={{ borderTop: `1px solid ${BORDER}` }}>
         <div style={sec()}>
           <Reveal>
-            <Eyebrow>Pricing</Eyebrow>
+            <Eyebrow>{IS_FREE_LAUNCH ? 'Free Launch Edition' : 'Pricing'}</Eyebrow>
             <h2 style={{ fontSize: 'clamp(32px,4.4vw,52px)', lineHeight: 1.04, letterSpacing: '-0.025em', fontWeight: 700, margin: '0 0 20px', fontFamily: F }}>
-              Choose your starting point.
+              {IS_FREE_LAUNCH ? 'Get Memento for your desktop.' : 'Choose your starting point.'}
             </h2>
             <p style={{ color: TEXT2, fontSize: 17, lineHeight: 1.6, maxWidth: 520 }}>
-              Collect a couple, make one yours, or get the complete collection.
+              {IS_FREE_LAUNCH
+                ? 'Download Memento for free during our launch. No payment, credit card, or subscription required.'
+                : 'Collect a couple, make one yours, or get the complete collection.'}
             </p>
           </Reveal>
+
+          {downloadError && (
+            <div style={{ marginTop: 20, background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: 12, padding: '12px 18px', color: '#FCA5A5', fontSize: 14 }}>
+              ⚠️ {downloadError}
+            </div>
+          )}
 
           <div
             className="pricing-grid"
@@ -1224,67 +1267,110 @@ export default function HomePage() {
               alignItems: 'stretch',
             }}
           >
-            <Reveal delay={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <PricingCard
-                name="Memento Duo"
-                subtitle="Start your collection."
-                amount="₹349"
-                unit="One-time purchase"
-                features={[
-                  'Choose any 2 Mementos',
-                  'Desktop companion with physics',
-                  'Windows available · macOS launching soon',
-                  'Future standard updates',
-                ]}
-                cta="Get Memento Duo"
-                onSelect={() => {
-                  trackPlanSelected('memento_duo')
-                  setCheckoutPlan('memento_duo')
-                }}
-              />
-            </Reveal>
-            <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <PricingCard
-                badge="Popular"
-                name="Memento Four"
-                subtitle="Our most popular companion pack."
-                amount="₹649"
-                unit="One-time purchase"
-                features={[
-                  'Choose any 4 Mementos',
-                  'Desktop companion with physics',
-                  'Windows available · macOS launching soon',
-                  'Future standard updates',
-                ]}
-                cta="Get Memento Four"
-                primary
-                highlighted
-                onSelect={() => {
-                  trackPlanSelected('memento_four')
-                  setCheckoutPlan('memento_four')
-                }}
-              />
-            </Reveal>
-            <Reveal delay={160} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <PricingCard
-                badge="Coming Soon"
-                name="Memento Complete"
-                subtitle="The complete collection."
-                amount="₹949"
-                unit="One-time purchase"
-                features={[
-                  'Access all Mementos / collections',
-                  'Choose 4 Mementos',
-                  '1 Surprise Charm',
-                  'Desktop companion with physics',
-                  'Windows available · macOS launching soon',
-                  'Future standard updates',
-                  'Customisation — Coming Soon',
-                ]}
-                cta="Coming Soon"
-                disabled
-              />
-            </Reveal>
+            {IS_FREE_LAUNCH ? (
+              <>
+                <Reveal delay={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <PricingCard
+                    badge="Free Launch"
+                    name="Memento for Windows"
+                    subtitle="Full desktop companion experience."
+                    amount="Free"
+                    unit="Windows 10 / 11 · v1.0.2"
+                    features={[
+                      'Collect and interact with Mementos',
+                      'Desktop companion with physics',
+                      'Windows 10 / 11 official installer',
+                      'Future standard updates included',
+                    ]}
+                    cta={downloadingWin ? 'Preparing Download…' : 'Download Free'}
+                    primary
+                    highlighted
+                    onSelect={handleFreeWindowsDownload}
+                  />
+                </Reveal>
+                <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <PricingCard
+                    badge="Coming Soon"
+                    name="Memento for macOS"
+                    subtitle="Apple Silicon & Intel Mac support."
+                    amount="Free"
+                    unit="Launching Soon"
+                    features={[
+                      'Native macOS desktop companion',
+                      'Full physics and customisation',
+                      'Universal Apple Silicon & Intel build',
+                      'Launching soon for Mac users',
+                    ]}
+                    cta="Launching Soon"
+                    disabled
+                  />
+                </Reveal>
+              </>
+            ) : (
+              <>
+                <Reveal delay={0} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <PricingCard
+                    name="Memento Duo"
+                    subtitle="Start your collection."
+                    amount="₹349"
+                    unit="One-time purchase"
+                    features={[
+                      'Choose any 2 Mementos',
+                      'Desktop companion with physics',
+                      'Windows available · macOS launching soon',
+                      'Future standard updates',
+                    ]}
+                    cta="Get Memento Duo"
+                    onSelect={() => {
+                      trackPlanSelected('memento_duo')
+                      setCheckoutPlan('memento_duo')
+                    }}
+                  />
+                </Reveal>
+                <Reveal delay={80} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <PricingCard
+                    badge="Popular"
+                    name="Memento Four"
+                    subtitle="Our most popular companion pack."
+                    amount="₹649"
+                    unit="One-time purchase"
+                    features={[
+                      'Choose any 4 Mementos',
+                      'Desktop companion with physics',
+                      'Windows available · macOS launching soon',
+                      'Future standard updates',
+                    ]}
+                    cta="Get Memento Four"
+                    primary
+                    highlighted
+                    onSelect={() => {
+                      trackPlanSelected('memento_four')
+                      setCheckoutPlan('memento_four')
+                    }}
+                  />
+                </Reveal>
+                <Reveal delay={160} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <PricingCard
+                    badge="Coming Soon"
+                    name="Memento Complete"
+                    subtitle="The complete collection."
+                    amount="₹949"
+                    unit="One-time purchase"
+                    features={[
+                      'Access all Mementos / collections',
+                      'Choose 4 Mementos',
+                      '1 Surprise Charm',
+                      'Desktop companion with physics',
+                      'Windows available · macOS launching soon',
+                      'Future standard updates',
+                      'Customisation — Coming Soon',
+                    ]}
+                    cta="Coming Soon"
+                    disabled
+                  />
+                </Reveal>
+              </>
+            )}
           </div>
 
           {/* Pricing Bottom Microcopy */}
@@ -1300,22 +1386,17 @@ export default function HomePage() {
               }}
             >
               <div style={{ color: '#F8FAFC', fontWeight: 700, fontSize: 16, letterSpacing: '-0.01em' }}>
-                One purchase. No recurring subscription.
+                {IS_FREE_LAUNCH ? 'Free to download. No payment required.' : 'One purchase. No recurring subscription.'}
               </div>
-              <div style={{ color: TEXT2, fontSize: 14.5 }}>
-                Windows available · macOS launching soon.
-              </div>
-              <div style={{ color: MUTED, fontSize: 13.5, marginTop: 4 }}>
-                Choose your Mementos. Make them yours. Keep them on your desktop.
-              </div>
+
             </div>
           </Reveal>
 
-          <style>{`@media(min-width:960px){.pricing-grid{grid-template-columns:repeat(3, 1fr)!important;}}`}</style>
+          <style>{`@media(min-width:960px){.pricing-grid{grid-template-columns:${IS_FREE_LAUNCH ? 'repeat(2, minmax(280px, 420px))' : 'repeat(3, 1fr)'}!important; justify-content: center;}}`}</style>
         </div>
       </section>
 
-      {checkoutPlan && (
+      {!IS_FREE_LAUNCH && checkoutPlan && (
         <CheckoutModal
           isOpen={!!checkoutPlan}
           onClose={() => setCheckoutPlan(null)}

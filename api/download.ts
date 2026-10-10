@@ -44,38 +44,32 @@ export default async function handler(req: any, res: any) {
       return res.end(JSON.stringify({ error: 'Invalid or missing platform. Expected "windows" or "macos".' }))
     }
 
-    if (!licenseKey || typeof licenseKey !== 'string') {
-      res.statusCode = 401
-      res.setHeader('Content-Type', 'application/json')
-      return res.end(
-        JSON.stringify({
-          error: 'Missing license key. You must have a valid Memento license to download the desktop application.',
-        })
-      )
-    }
-
-    // 1. Authorize license & payment status
-    const license = await db.getLicenseByKey(licenseKey.trim().toUpperCase())
-    if (!license) {
-      res.statusCode = 403
-      res.setHeader('Content-Type', 'application/json')
-      return res.end(JSON.stringify({ error: 'License key not found or invalid.' }))
-    }
-
-    if (license.status !== 'active') {
-      res.statusCode = 403
-      res.setHeader('Content-Type', 'application/json')
-      return res.end(JSON.stringify({ error: `License is currently ${license.status}.` }))
-    }
-
-    // Verify associated purchase
-    if (license.purchase_id) {
-      const purchase = await db.getPurchaseById(license.purchase_id)
-      if (purchase && purchase.status !== 'paid') {
+    // 1. Authorize license & payment status if licenseKey is provided (preserves paid license flow)
+    let licensePlan = 'free'
+    if (licenseKey && typeof licenseKey === 'string' && licenseKey.trim().length > 0) {
+      const license = await db.getLicenseByKey(licenseKey.trim().toUpperCase())
+      if (!license) {
         res.statusCode = 403
         res.setHeader('Content-Type', 'application/json')
-        return res.end(JSON.stringify({ error: 'Purchase has not been marked as paid.' }))
+        return res.end(JSON.stringify({ error: 'License key not found or invalid.' }))
       }
+
+      if (license.status !== 'active') {
+        res.statusCode = 403
+        res.setHeader('Content-Type', 'application/json')
+        return res.end(JSON.stringify({ error: `License is currently ${license.status}.` }))
+      }
+
+      // Verify associated purchase
+      if (license.purchase_id) {
+        const purchase = await db.getPurchaseById(license.purchase_id)
+        if (purchase && purchase.status !== 'paid') {
+          res.statusCode = 403
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify({ error: 'Purchase has not been marked as paid.' }))
+        }
+      }
+      licensePlan = license.plan
     }
 
     // 2. Resolve download URL (signed Supabase Storage URL or configured Release URL)
@@ -109,7 +103,7 @@ export default async function handler(req: any, res: any) {
         downloadUrl: result.downloadUrl,
         fileName: result.fileName,
         version: result.version,
-        plan: license.plan,
+        plan: licensePlan,
       })
     )
   } catch (err: any) {
