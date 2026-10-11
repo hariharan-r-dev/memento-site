@@ -15,18 +15,18 @@ export const RELEASES_CONFIG: {
   windows: PlatformRelease
   macos: PlatformRelease
 } = {
-  version: '1.0.2',
+  version: '1.0.4',
   bucket: 'memento-releases',
   windows: {
     fileName: 'Memento-Setup.exe',
-    version: '1.0.2',
+    version: '1.0.4',
     platform: 'windows',
     mimeType: 'application/vnd.microsoft.portable-executable',
     storagePath: 'windows/Memento-Setup.exe',
   },
   macos: {
     fileName: 'Memento-macOS.dmg',
-    version: '1.0.2',
+    version: '1.0.4',
     platform: 'macos',
     mimeType: 'application/x-apple-diskimage',
     storagePath: 'macos/Memento-macOS.dmg',
@@ -85,8 +85,8 @@ export async function resolveDownloadUrl(platform: 'windows' | 'macos'): Promise
   return {
     downloadUrl:
       platform === 'windows'
-        ? 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
-        : 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-macOS.dmg',
+        ? 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-Setup.exe'
+        : 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-macOS.dmg',
     fileName: release.fileName,
     version: release.version,
     source: 'env_configured',

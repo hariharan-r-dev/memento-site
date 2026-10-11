@@ -93,7 +93,7 @@ export function trackDownloadClick(params: DownloadClickParams) {
   try {
     gtagSafe('event', 'download_click', {
       platform: params.platform,
-      release_version: params.release_version || 'v1.0.2',
+      release_version: params.release_version || 'v1.0.4',
       download_source: params.download_source || 'website',
       link_destination: params.link_destination || 'github',
     })
@@ -102,7 +102,7 @@ export function trackDownloadClick(params: DownloadClickParams) {
     gtagSafe('event', 'download_clicked', {
       platform: params.platform,
       plan: params.plan || 'free',
-      release_version: params.release_version || 'v1.0.2',
+      release_version: params.release_version || 'v1.0.4',
     })
   } catch (err) {
     console.warn('[Analytics trackDownloadClick error]', err)
@@ -127,7 +127,7 @@ export function trackGithubRedirect(params: GithubRedirectParams) {
   try {
     gtagSafe('event', 'github_redirect', {
       platform: params.platform,
-      release_version: params.release_version || 'v1.0.2',
+      release_version: params.release_version || 'v1.0.4',
       download_source: params.download_source || 'website',
       link_destination: params.link_destination || 'github',
       redirect_url: params.url || '',

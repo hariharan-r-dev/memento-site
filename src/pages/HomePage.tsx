@@ -400,7 +400,7 @@ export default function HomePage() {
           if (data && typeof data.totalSetupDownloads === 'number') {
             setDownloadStats({
               count: data.totalSetupDownloads,
-              latestVersion: data.latestVersion || 'v1.0.2',
+              latestVersion: data.latestVersion || 'v1.0.4',
               loading: false,
               error: false,
             })
@@ -424,7 +424,7 @@ export default function HomePage() {
     setDownloadingWin(true)
     setDownloadError(null)
 
-    const version = downloadStats.latestVersion || 'v1.0.2'
+    const version = downloadStats.latestVersion || 'v1.0.4'
 
     // 1. Record download_click event
     trackDownloadClick({
@@ -657,7 +657,7 @@ export default function HomePage() {
                 onClick={() => {
                   trackDownloadClick({
                     platform: 'windows',
-                    release_version: downloadStats.latestVersion || 'v1.0.2',
+                    release_version: downloadStats.latestVersion || 'v1.0.4',
                     download_source: 'hero_cta',
                     link_destination: 'pricing_section',
                     plan: 'free',
@@ -1502,7 +1502,7 @@ export default function HomePage() {
                     name="Memento for Windows"
                     subtitle="Full desktop companion experience."
                     amount="Free"
-                    unit={`Windows 10 / 11 • ${downloadStats.latestVersion || 'v1.0.2'}`}
+                    unit={`Windows 10 / 11 • ${downloadStats.latestVersion || 'v1.0.4'}`}
                     features={[
                       'Collect and interact with Mementos',
                       'Desktop companion with physics',

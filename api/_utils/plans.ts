@@ -130,10 +130,10 @@ export function getDownloadUrls() {
     windows:
       process.env.WINDOWS_DOWNLOAD_URL ||
       process.env.VITE_WINDOWS_DOWNLOAD_URL ||
-      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe',
+      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-Setup.exe',
     macOS:
       process.env.MACOS_DOWNLOAD_URL ||
       process.env.VITE_MACOS_DOWNLOAD_URL ||
-      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-macOS.dmg',
+      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-macOS.dmg',
   }
 }

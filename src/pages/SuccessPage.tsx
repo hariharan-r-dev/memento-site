@@ -117,7 +117,7 @@ export default function SuccessPage() {
       // Track download click and redirection
       trackDownloadClick({
         platform,
-        release_version: data.version || 'v1.0.2',
+        release_version: data.version || 'v1.0.4',
         download_source: 'success_page',
         link_destination: data.downloadUrl?.includes('github.com') ? 'github' : 'storage',
         plan: licenseData.plan || 'memento',
@@ -125,7 +125,7 @@ export default function SuccessPage() {
       if (data.downloadUrl && data.downloadUrl.includes('github.com')) {
         trackGithubRedirect({
           platform,
-          release_version: data.version || 'v1.0.2',
+          release_version: data.version || 'v1.0.4',
           download_source: 'success_page',
           link_destination: 'github',
           url: data.downloadUrl,
@@ -435,7 +435,7 @@ export default function SuccessPage() {
                   Windows 10 / 11
                 </div>
                 <div style={{ fontSize: 12.5, color: MUTED }}>
-                  Official .exe standalone installer · v1.0.2
+                  Official .exe standalone installer · v1.0.4
                 </div>
               </div>
 
