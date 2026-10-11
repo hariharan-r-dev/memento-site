@@ -6,6 +6,7 @@ import activateHandler from './license/activate.js'
 import verifyLicenseHandler from './license/verify.js'
 import mementosHandler from './license/mementos.js'
 import downloadHandler from './download.js'
+import downloadsHandler from './downloads.js'
 
 export async function handleApiRequest(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   const parsedUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`)
@@ -20,6 +21,7 @@ export async function handleApiRequest(req: IncomingMessage, res: ServerResponse
   else if (pathname === '/api/license/activate') handler = activateHandler
   else if (pathname === '/api/license/verify') handler = verifyLicenseHandler
   else if (pathname === '/api/license/mementos') handler = mementosHandler
+  else if (pathname === '/api/downloads') handler = downloadsHandler
   else if (pathname === '/api/download' || pathname.startsWith('/api/download/')) {
     if (pathname === '/api/download/windows') {
       ;(req as any).query = { ...(req as any).query, platform: 'windows' }

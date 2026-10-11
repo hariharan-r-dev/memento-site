@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router'
 import { collections } from '../data/collections'
 import { CharmArt } from '../components/CharmArt'
 import type { Charm } from '../data/charms'
-import { trackDownloadClicked } from '../lib/analytics'
+import { trackDownloadClick, trackGithubRedirect } from '../lib/analytics'
 
 const BG      = '#070B14'
 const BG2     = '#0D1422'
@@ -114,11 +114,21 @@ export default function SuccessPage() {
         return
       }
 
-      // Track successful authorized download initiation
-      if (platform === 'windows') {
-        trackDownloadClicked({
-          platform: 'windows',
-          plan: licenseData.plan || 'memento',
+      // Track download click and redirection
+      trackDownloadClick({
+        platform,
+        release_version: data.version || 'v1.0.2',
+        download_source: 'success_page',
+        link_destination: data.downloadUrl?.includes('github.com') ? 'github' : 'storage',
+        plan: licenseData.plan || 'memento',
+      })
+      if (data.downloadUrl && data.downloadUrl.includes('github.com')) {
+        trackGithubRedirect({
+          platform,
+          release_version: data.version || 'v1.0.2',
+          download_source: 'success_page',
+          link_destination: 'github',
+          url: data.downloadUrl,
         })
       }
 

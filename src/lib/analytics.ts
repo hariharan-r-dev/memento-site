@@ -1,12 +1,14 @@
 /**
  * Google Analytics 4 Helper for Memento
- * Measurement ID: G-LM320S7RDS
+ * Measurement ID: Configured via VITE_GA_MEASUREMENT_ID or fallback G-LM320S7RDS
  *
  * All functions are safely wrapped in try/catch and never block
  * payment, licensing, download, or UI interactions.
  */
 
-export const GA_MEASUREMENT_ID = 'G-LM320S7RDS'
+export const GA_MEASUREMENT_ID =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GA_MEASUREMENT_ID) ||
+  'G-LM320S7RDS'
 
 declare global {
   interface Window {
@@ -40,12 +42,15 @@ export const ANALYTICS_PLANS: Record<
 }
 
 /**
- * Safe wrapper around window.gtag
+ * Safe wrapper around window.gtag - never throws or blocks UI
  */
 export function gtagSafe(...args: any[]) {
   try {
-    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    if (typeof window === 'undefined') return
+    if (typeof window.gtag === 'function') {
       window.gtag(...args)
+    } else if (Array.isArray(window.dataLayer)) {
+      window.dataLayer.push(args)
     }
   } catch (err) {
     // Non-blocking: analytics failures must never interrupt application execution
@@ -53,17 +58,99 @@ export function gtagSafe(...args: any[]) {
   }
 }
 
+let lastTrackedPath = ''
+
 /**
  * Track SPA Page View on React Router navigation
+ * Guards against duplicate page views
  */
 export function trackPageView(pagePath: string, pageTitle?: string) {
   try {
+    if (!pagePath || pagePath === lastTrackedPath) return
+    lastTrackedPath = pagePath
+
     gtagSafe('event', 'page_view', {
       page_path: pagePath,
       page_title: pageTitle || (typeof document !== 'undefined' ? document.title : ''),
     })
   } catch (err) {
     console.warn('[Analytics trackPageView error]', err)
+  }
+}
+
+export interface DownloadClickParams {
+  platform: 'windows' | 'macos'
+  release_version?: string
+  download_source?: string
+  link_destination?: string
+  plan?: string
+}
+
+/**
+ * Track Download button clicks with non-personal context
+ */
+export function trackDownloadClick(params: DownloadClickParams) {
+  try {
+    gtagSafe('event', 'download_click', {
+      platform: params.platform,
+      release_version: params.release_version || 'v1.0.2',
+      download_source: params.download_source || 'website',
+      link_destination: params.link_destination || 'github',
+    })
+
+    // Also send legacy event name for backward-compatibility with existing custom reports
+    gtagSafe('event', 'download_clicked', {
+      platform: params.platform,
+      plan: params.plan || 'free',
+      release_version: params.release_version || 'v1.0.2',
+    })
+  } catch (err) {
+    console.warn('[Analytics trackDownloadClick error]', err)
+  }
+}
+
+/** Backward-compatibility alias */
+export const trackDownloadClicked = trackDownloadClick
+
+export interface GithubRedirectParams {
+  platform: 'windows' | 'macos'
+  release_version?: string
+  download_source?: string
+  link_destination?: string
+  url?: string
+}
+
+/**
+ * Track when website initiates actual navigation or redirection to GitHub Releases
+ */
+export function trackGithubRedirect(params: GithubRedirectParams) {
+  try {
+    gtagSafe('event', 'github_redirect', {
+      platform: params.platform,
+      release_version: params.release_version || 'v1.0.2',
+      download_source: params.download_source || 'website',
+      link_destination: params.link_destination || 'github',
+      redirect_url: params.url || '',
+    })
+  } catch (err) {
+    console.warn('[Analytics trackGithubRedirect error]', err)
+  }
+}
+
+export interface NewsletterSignupParams {
+  source?: string
+}
+
+/**
+ * Track newsletter signup event if form submitted (strictly no PII)
+ */
+export function trackNewsletterSignup(params?: NewsletterSignupParams) {
+  try {
+    gtagSafe('event', 'newsletter_signup', {
+      signup_source: params?.source || 'website',
+    })
+  } catch (err) {
+    console.warn('[Analytics trackNewsletterSignup error]', err)
   }
 }
 
@@ -183,22 +270,5 @@ export function trackPurchase(params: {
     markPurchaseTracked(transactionId)
   } catch (err) {
     console.warn('[Analytics trackPurchase error]', err)
-  }
-}
-
-/**
- * Track authorized Windows download
- */
-export function trackDownloadClicked(params: {
-  platform: 'windows' | 'macos'
-  plan?: string
-}) {
-  try {
-    gtagSafe('event', 'download_clicked', {
-      platform: params.platform,
-      plan: params.plan || 'memento',
-    })
-  } catch (err) {
-    console.warn('[Analytics trackDownloadClicked error]', err)
   }
 }

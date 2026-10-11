@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { InteractiveMemento } from '../components/InteractiveMemento'
 import { CharmArt } from '../components/CharmArt'
 import { CheckoutModal } from '../components/CheckoutModal'
-import { trackPlanSelected, trackDownloadClicked } from '../lib/analytics'
+import { BeyondThePixels } from '../components/BeyondThePixels'
+import { trackPlanSelected, trackDownloadClick, trackGithubRedirect } from '../lib/analytics'
 import { collections } from '../data/collections'
 import type { Charm } from '../data/charms'
 
@@ -122,9 +123,14 @@ type PCProps = {
   primary?: boolean
   highlighted?: boolean
   disabled?: boolean
+  downloadStats?: {
+    count: number | null
+    loading: boolean
+    error: boolean
+  }
   onSelect?: () => void
 }
-function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted, disabled, onSelect }: PCProps) {
+function PricingCard({ badge, name, subtitle, amount, unit, features, cta, primary, highlighted, disabled, downloadStats, onSelect }: PCProps) {
   return (
     <div
       style={{
@@ -229,6 +235,70 @@ function PricingCard({ badge, name, subtitle, amount, unit, features, cta, prima
         >
           {cta}
         </button>
+
+        {/* Compact Download Counter Element */}
+        {downloadStats && (
+          <div
+            style={{
+              marginTop: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              minHeight: 20,
+              fontSize: 12.5,
+              color: '#94A3B8',
+              fontFamily: F,
+            }}
+          >
+            {downloadStats.loading ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0.65 }}>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 76,
+                    height: 11,
+                    borderRadius: 999,
+                    background: 'rgba(148, 163, 184, 0.2)',
+                  }}
+                />
+              </div>
+            ) : downloadStats.error || downloadStats.count === null ? null : (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  color: '#94A3B8',
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                }}
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={SKY_B}
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ flexShrink: 0 }}
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>
+                  <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>
+                    {new Intl.NumberFormat().format(downloadStats.count)}
+                  </strong>{' '}
+                  recorded downloads
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -297,30 +367,102 @@ export default function HomePage() {
   const [checkoutPlan, setCheckoutPlan] = useState<any>(null)
   const [downloadingWin, setDownloadingWin] = useState(false)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const [downloadStats, setDownloadStats] = useState<{
+    count: number | null
+    latestVersion: string | null
+    loading: boolean
+    error: boolean
+  }>({
+    count: null,
+    latestVersion: null,
+    loading: true,
+    error: false,
+  })
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/downloads')
+        if (!res.ok) throw new Error('API fetch error')
+        const data = await res.json()
+        if (isMounted) {
+          if (data && typeof data.totalSetupDownloads === 'number') {
+            setDownloadStats({
+              count: data.totalSetupDownloads,
+              latestVersion: data.latestVersion || 'v1.0.2',
+              loading: false,
+              error: false,
+            })
+          } else {
+            setDownloadStats(prev => ({ ...prev, loading: false, error: true }))
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setDownloadStats(prev => ({ ...prev, loading: false, error: true }))
+        }
+      }
+    }
+    fetchStats()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleFreeWindowsDownload = async () => {
     setDownloadingWin(true)
     setDownloadError(null)
+
+    const version = downloadStats.latestVersion || 'v1.0.2'
+
+    // 1. Record download_click event
+    trackDownloadClick({
+      platform: 'windows',
+      release_version: version,
+      download_source: 'pricing_card',
+      link_destination: 'github',
+      plan: 'free',
+    })
+
     try {
-      trackDownloadClicked({
-        platform: 'windows',
-        plan: 'free',
-      })
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: 'windows' }),
       })
       const data = await res.json().catch(() => ({}))
-      const targetUrl = data.downloadUrl || 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
+      const targetUrl = data.downloadUrl || `https://github.com/hariharan-r-dev/Memento/releases/download/${version}/Memento-Setup.exe`
+      const fileName = data.fileName || 'Memento-Setup.exe'
+      const downloadVersion = data.version || version
+
+      // 2. Record github_redirect only when navigating to GitHub installer
+      if (targetUrl.includes('github.com')) {
+        trackGithubRedirect({
+          platform: 'windows',
+          release_version: downloadVersion,
+          download_source: 'website',
+          link_destination: 'github',
+          url: targetUrl,
+        })
+      }
+
       const a = document.createElement('a')
       a.href = targetUrl
-      a.download = data.fileName || 'Memento-Setup.exe'
+      a.download = fileName
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
     } catch {
-      window.location.href = 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.2/Memento-Setup.exe'
+      const fallbackUrl = `https://github.com/hariharan-r-dev/Memento/releases/download/${version}/Memento-Setup.exe`
+      trackGithubRedirect({
+        platform: 'windows',
+        release_version: version,
+        download_source: 'website',
+        link_destination: 'github',
+        url: fallbackUrl,
+      })
+      window.location.href = fallbackUrl
     } finally {
       setTimeout(() => setDownloadingWin(false), 1500)
     }
@@ -490,7 +632,7 @@ export default function HomePage() {
               Collect charming companions and let them live on your desktop.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 26 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 20 }}>
               <button
                 onClick={() => scrollTo(collRef)}
                 style={{
@@ -502,7 +644,16 @@ export default function HomePage() {
                 Explore Mementos
               </button>
               <button
-                onClick={() => scrollTo(pricingRef)}
+                onClick={() => {
+                  trackDownloadClick({
+                    platform: 'windows',
+                    release_version: downloadStats.latestVersion || 'v1.0.2',
+                    download_source: 'hero_cta',
+                    link_destination: 'pricing_section',
+                    plan: 'free',
+                  })
+                  scrollTo(pricingRef)
+                }}
                 style={{
                   background: 'rgba(7, 11, 20, 0.40)', backdropFilter: 'blur(8px)', color: '#F8FAFC', border: `1px solid ${BORDER}`,
                   borderRadius: 12, padding: '15px 26px', fontFamily: F, fontWeight: 600, fontSize: 15, cursor: 'pointer',
@@ -511,6 +662,39 @@ export default function HomePage() {
                 {IS_FREE_LAUNCH ? 'Get Memento Free' : 'Get Memento'}
               </button>
             </div>
+
+            {/* Community message near primary Download CTA */}
+            {downloadStats.count !== null && !downloadStats.error && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: TEXT2,
+                  fontSize: 14,
+                  lineHeight: 1.5,
+                  fontFamily: F,
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: SKY,
+                    boxShadow: '0 0 8px rgba(56, 189, 248, 0.6)',
+                    flexShrink: 0,
+                  }}
+                />
+                <span>
+                  <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>
+                    {new Intl.NumberFormat().format(downloadStats.count)}
+                  </strong>{' '}
+                  people made their desktops a little more fun.
+                </span>
+              </div>
+            )}
 
           </div>
 
@@ -1244,11 +1428,44 @@ export default function HomePage() {
             <h2 style={{ fontSize: 'clamp(32px,4.4vw,52px)', lineHeight: 1.04, letterSpacing: '-0.025em', fontWeight: 700, margin: '0 0 20px', fontFamily: F }}>
               {IS_FREE_LAUNCH ? 'Get Memento for your desktop.' : 'Choose your starting point.'}
             </h2>
-            <p style={{ color: TEXT2, fontSize: 17, lineHeight: 1.6, maxWidth: 520 }}>
+            <p style={{ color: TEXT2, fontSize: 17, lineHeight: 1.6, maxWidth: 520, margin: '0 0 20px' }}>
               {IS_FREE_LAUNCH
                 ? 'Download Memento for free during our launch. No payment, credit card, or subscription required.'
                 : 'Collect a couple, make one yours, or get the complete collection.'}
             </p>
+
+            {/* Community message above the download box/card */}
+            {downloadStats.count !== null && !downloadStats.error && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: TEXT2,
+                  fontSize: 14.5,
+                  lineHeight: 1.5,
+                  fontFamily: F,
+                }}
+              >
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: SKY,
+                    boxShadow: '0 0 8px rgba(56, 189, 248, 0.6)',
+                    flexShrink: 0,
+                  }}
+                />
+                <span>
+                  <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>
+                    {new Intl.NumberFormat().format(downloadStats.count)}
+                  </strong>{' '}
+                  people made their desktops a little more fun.
+                </span>
+              </div>
+            )}
           </Reveal>
 
           {downloadError && (
@@ -1263,7 +1480,7 @@ export default function HomePage() {
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
               gap: 24,
-              marginTop: 44,
+              marginTop: 32,
               alignItems: 'stretch',
             }}
           >
@@ -1275,7 +1492,7 @@ export default function HomePage() {
                     name="Memento for Windows"
                     subtitle="Full desktop companion experience."
                     amount="Free"
-                    unit="Windows 10 / 11 · v1.0.2"
+                    unit={`Windows 10 / 11 • ${downloadStats.latestVersion || 'v1.0.2'}`}
                     features={[
                       'Collect and interact with Mementos',
                       'Desktop companion with physics',
@@ -1395,6 +1612,9 @@ export default function HomePage() {
           <style>{`@media(min-width:960px){.pricing-grid{grid-template-columns:${IS_FREE_LAUNCH ? 'repeat(2, minmax(280px, 420px))' : 'repeat(3, 1fr)'}!important; justify-content: center;}}`}</style>
         </div>
       </section>
+
+      {/* Beyond the Pixels — Creator & Social Links Section */}
+      <BeyondThePixels />
 
       {!IS_FREE_LAUNCH && checkoutPlan && (
         <CheckoutModal

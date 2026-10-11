@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, Outlet, useLocation } from 'react-router'
-import { trackPageView } from '../lib/analytics'
+import { trackPageView, trackDownloadClick } from '../lib/analytics'
 
 const F = "'Plus Jakarta Sans', system-ui, sans-serif"
 const BORDER = 'rgba(148,163,184,0.16)'
@@ -121,6 +121,13 @@ export default function Root() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <a
             href={isHome ? '#pricing' : '/#pricing'}
+            onClick={() => {
+              trackDownloadClick({
+                platform: 'windows',
+                download_source: 'navbar_cta',
+                link_destination: 'pricing_section',
+              })
+            }}
             style={{
               background: '#F8FAFC', color: '#050810', border: 'none', borderRadius: 999,
               padding: '10px 20px', fontFamily: F, fontWeight: 700, fontSize: 14, cursor: 'pointer',
@@ -196,7 +203,6 @@ export default function Root() {
         <ul style={{ display: 'flex', gap: 28, flexWrap: 'wrap', listStyle: 'none', padding: 0, margin: 0 }}>
           {[
             { label: 'Collections', href: '/#collections' },
-            { label: 'How it works', href: '/#how-it-works' },
             { label: 'Customize', href: '/#customize' },
             { label: 'Pricing', href: '/#pricing' },
             { label: 'Updates', href: '/updates' },
