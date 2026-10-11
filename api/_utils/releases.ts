@@ -44,14 +44,21 @@ export async function resolveDownloadUrl(platform: 'windows' | 'macos'): Promise
   const release = platform === 'windows' ? RELEASES_CONFIG.windows : RELEASES_CONFIG.macos
 
   // 1. Check if direct environment variable is configured (e.g., GitHub Releases / CDN / R2)
-  const envUrl =
+  const rawEnv =
     platform === 'windows'
       ? process.env.WINDOWS_DOWNLOAD_URL || process.env.VITE_WINDOWS_DOWNLOAD_URL
       : process.env.MACOS_DOWNLOAD_URL || process.env.VITE_MACOS_DOWNLOAD_URL
 
-  if (envUrl && envUrl.trim().length > 0) {
+  const envUrl = rawEnv?.trim()
+
+  if (envUrl && envUrl.length > 0) {
+    // If the configured environment variable points to a GitHub release URL, ensure it serves the active release version
+    const effectiveUrl = envUrl.includes('github.com/hariharan-r-dev/Memento/releases/download/')
+      ? 'https://github.com/hariharan-r-dev/Memento/releases/download/v' + release.version + '/' + release.fileName
+      : envUrl
+
     return {
-      downloadUrl: envUrl.trim(),
+      downloadUrl: effectiveUrl,
       fileName: release.fileName,
       version: release.version,
       source: 'env_configured',

@@ -126,14 +126,20 @@ export function getPlanConfig(planId: string): PlanConfig | null {
 }
 
 export function getDownloadUrls() {
+  const winEnv = (process.env.WINDOWS_DOWNLOAD_URL || process.env.VITE_WINDOWS_DOWNLOAD_URL)?.trim()
+  const macEnv = (process.env.MACOS_DOWNLOAD_URL || process.env.VITE_MACOS_DOWNLOAD_URL)?.trim()
+
+  const defaultWin = 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-Setup.exe'
+  const defaultMac = 'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-macOS.dmg'
+
   return {
     windows:
-      process.env.WINDOWS_DOWNLOAD_URL ||
-      process.env.VITE_WINDOWS_DOWNLOAD_URL ||
-      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-Setup.exe',
+      winEnv && !winEnv.includes('github.com/hariharan-r-dev/Memento/releases/download/')
+        ? winEnv
+        : defaultWin,
     macOS:
-      process.env.MACOS_DOWNLOAD_URL ||
-      process.env.VITE_MACOS_DOWNLOAD_URL ||
-      'https://github.com/hariharan-r-dev/Memento/releases/download/v1.0.4/Memento-macOS.dmg',
+      macEnv && !macEnv.includes('github.com/hariharan-r-dev/Memento/releases/download/')
+        ? macEnv
+        : defaultMac,
   }
 }
