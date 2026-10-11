@@ -69,3 +69,13 @@ body {
   background: rgba(148, 163, 184, 0.12);
   border-radius: 4px;
 }
+
+
+/* Smooth Scrolling & Section Anchor Offsets */
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 80px;
+}

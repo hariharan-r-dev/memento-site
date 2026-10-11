@@ -348,6 +348,16 @@ function ComingSoonCard({ name }: { name: string }) {
    MAIN PAGE
    ════════════════════════════════════════════════════════════════ */
 export default function HomePage() {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const el = document.querySelector(window.location.hash)
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' })
+        }, 100)
+      }
+    }
+  }, [])
   /* ── Charms data setup ─────────────────────────────────────────── */
   const allCharms = collections.flatMap(c => c.charms)
   const ferrariCharm = allCharms.find(c => c.id === 'ferrari') ?? allCharms[0]
@@ -776,7 +786,7 @@ export default function HomePage() {
           DESKTOP VIEW INTERACTIVE PREVIEW
           "GO ON. GIVE IT A LITTLE NUDGE."
           ════════════════════════════════════════════════════════ */}
-      <section style={{ borderTop: `1px solid ${BORDER}` }}>
+      <section id="collections" ref={collRef} style={{ borderTop: `1px solid ${BORDER}`, scrollMarginTop: 80 }}>
         <div style={sec()}>
           <Reveal>
             <Eyebrow>Go on. Give it a little nudge.</Eyebrow>
@@ -1279,7 +1289,7 @@ export default function HomePage() {
       {/* ════════════════════════════════════════════════════════
           COLLECTION — tabs + charm grid (Temporarily commented out)
           ════════════════════════════════════════════════════════ */}
-      {/* <section id="collections" ref={collRef} style={{ borderTop: `1px solid ${BORDER}` }}>
+      {/* <section id="old-collections-archived" style={{ borderTop: `1px solid ${BORDER}` }}>
         <div style={sec()}>
           <Reveal>
             <Eyebrow>The collection</Eyebrow>

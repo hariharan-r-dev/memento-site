@@ -202,9 +202,9 @@ export default function Root() {
         </div>
         <ul style={{ display: 'flex', gap: 28, flexWrap: 'wrap', listStyle: 'none', padding: 0, margin: 0 }}>
           {[
-            { label: 'Collections', href: '/#collections' },
-            { label: 'Customize', href: '/#customize' },
-            { label: 'Pricing', href: '/#pricing' },
+            { label: 'Collections', href: isHome ? '#collections' : '/#collections' },
+            { label: 'Customize', href: isHome ? '#customize' : '/#customize' },
+            { label: 'Pricing', href: isHome ? '#pricing' : '/#pricing' },
             { label: 'Updates', href: '/updates' },
             { label: 'FAQ', href: '/faq' },
             { label: 'Privacy', href: '/privacy' },
