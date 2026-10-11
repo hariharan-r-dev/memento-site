@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { InteractiveMemento } from '../components/InteractiveMemento'
 import { CharmArt } from '../components/CharmArt'
 import { CheckoutModal } from '../components/CheckoutModal'
-import { BeyondThePixels } from '../components/BeyondThePixels'
+// import { BeyondThePixels } from '../components/BeyondThePixels'
 import { trackPlanSelected, trackDownloadClick, trackGithubRedirect } from '../lib/analytics'
 import { collections } from '../data/collections'
 import type { Charm } from '../data/charms'
@@ -1623,8 +1623,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Beyond the Pixels — Creator & Social Links Section */}
-      <BeyondThePixels />
+      {/* Beyond the Pixels — Creator & Social Links Section (Commented out for now) */}
+      {/* <BeyondThePixels /> */}
 
       {!IS_FREE_LAUNCH && checkoutPlan && (
         <CheckoutModal
